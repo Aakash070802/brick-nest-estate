@@ -107,4 +107,64 @@ const loginController = async (req, res) => {
     );
 };
 
-export { registerController, loginController };
+const googleController = async (req, res) => {
+  const { email, name, photo } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Google auth failed");
+  }
+
+  let user = await User.findOne({ email });
+
+  // If user exists → login
+
+  if (user) {
+    const token = jwt.sign(
+      {
+        id: user?._id,
+        email: user?.email,
+      },
+      config.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    return res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: config.NODE_ENV === "production",
+      })
+      .json(new ApiResponse(200, "Login success", user));
+  }
+
+  // If user doesn't exist → create
+  const randomPassword = Math.random().toString(36).slice(-8);
+
+  const newUser = await User.create({
+    username: name.replace(/\s+/g, "").toLowerCase(),
+    email,
+    password: randomPassword,
+    avatar: photo,
+  });
+
+  const token = jwt.sign(
+    {
+      id: newUser._id,
+      email: newUser.email,
+    },
+    config.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  return res
+    .status(201)
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    })
+    .json(new ApiResponse(201, "Google signup success", newUser));
+};
+
+export { registerController, loginController, googleController };

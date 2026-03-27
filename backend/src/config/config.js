@@ -19,6 +19,9 @@ if (!process.env.CLOUDINARY_API_KEY) {
 if (!process.env.CLOUDINARY_CLOUD_NAME) {
   throw new Error("CLOUDINARY_CLOUD_NAME is not defined at ENV file.");
 }
+if (!process.env.NODE_ENV) {
+  throw new Error("NODE_ENV is not defined at ENV file.");
+}
 
 const config = {
   PORT: process.env.PORT || 3000,
@@ -27,6 +30,7 @@ const config = {
   CLOUD_SECRET: process.env.CLOUDINARY_API_SECRET,
   CLOUD_API: process.env.CLOUDINARY_API_KEY,
   CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  NODE_ENV: process.env.NODE_ENV,
 };
 
 export { config };

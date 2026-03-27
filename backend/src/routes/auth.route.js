@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
+  googleController,
   loginController,
   registerController,
 } from "../controller/auth.controller.js";
@@ -20,7 +21,7 @@ router.route("/login").post(loginController);
 /**
  * - POST /api/auth/google
  */
-// router.route("/google").post();
+router.route("/google").post(googleController);
 
 /**
  * - GET /api/auth/logout
