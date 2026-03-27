@@ -47,9 +47,12 @@ const registerController = async (req, res) => {
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while creating User!!");
   }
+
+  const safeUser = await User.findById(createdUser?._id);
+
   return res
     .status(201)
-    .json(new ApiResponse(201, "User created Successfully!", createdUser));
+    .json(new ApiResponse(201, "User created Successfully!", safeUser));
 };
 
 export { registerController };

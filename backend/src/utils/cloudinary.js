@@ -16,8 +16,8 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto",
       folder: "brickNest-images",
     });
-    console.log("File is Uploaded to cloudinary", response.url);
-    // fs.unlinkSync(localFilePath);
+    // console.log("File is Uploaded to cloudinary", response.url);
+    fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
     fs.unlinkSync(localFilePath);

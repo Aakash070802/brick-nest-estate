@@ -12,16 +12,16 @@ router.route("/register").post(upload.single("avatar"), registerController);
 /**
  * - POST /api/auth/login
  */
-router.route("/login").post();
+// router.route("/login").post();
 
 /**
  * - POST /api/auth/google
  */
-router.route("/google").post();
+// router.route("/google").post();
 
 /**
  * - GET /api/auth/logout
  */
-router.route("/logout").get();
+// router.route("/logout").get();
 
 export default router;
