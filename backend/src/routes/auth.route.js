@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
-import { registerController } from "../controller/auth.controller.js";
+import {
+  loginController,
+  registerController,
+} from "../controller/auth.controller.js";
 
 const router = Router();
 
@@ -12,7 +15,7 @@ router.route("/register").post(upload.single("avatar"), registerController);
 /**
  * - POST /api/auth/login
  */
-// router.route("/login").post();
+router.route("/login").post(loginController);
 
 /**
  * - POST /api/auth/google
