@@ -58,14 +58,17 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   const { username, email, password } = req.body;
 
-  if (!username || !email || !password) {
-    throw new ApiError(400, "All fields required compulsorily!!");
+  if (!username && !email) {
+    throw new ApiError(400, "Username or Email ID is required!");
+  }
+  if (!password) {
+    throw new ApiError(400, "Password is required!");
   }
 
   /* FIND USER BY EMAIL OR USERNAME */
   const user = await User.findOne({
     $or: [{ username }, { email }],
-  });
+  }).select("+password");
 
   if (!user) {
     throw new ApiError(401, "Invalid Email ID or Username!");
@@ -93,10 +96,15 @@ const loginController = async (req, res) => {
     }
   );
 
+  const loggedInUser = user.toObject();
+  delete loggedInUser.password;
+
   return res
     .status(200)
     .cookie("token", token, options)
-    .json(new ApiResponse(200, "User logged In successfully", user, token));
+    .json(
+      new ApiResponse(200, "User logged In successfully", loggedInUser, token)
+    );
 };
 
 export { registerController, loginController };
