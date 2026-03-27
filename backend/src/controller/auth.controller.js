@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import Blacklist from "../models/blacklist.model.js";
 
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
@@ -167,4 +168,31 @@ const googleController = async (req, res) => {
     .json(new ApiResponse(201, "Google signup success", newUser));
 };
 
-export { registerController, loginController, googleController };
+const logoutController = async (req, res) => {
+  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    throw new ApiError(
+      401,
+      "Unauthorized Access, token is required for logout!"
+    );
+  }
+
+  res.clearCookie("token", "", {
+    httpOnly: true,
+    secure: true,
+  });
+
+  await Blacklist.create({ token });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User Logged out successfully"));
+};
+
+export {
+  registerController,
+  loginController,
+  googleController,
+  logoutController,
+};
