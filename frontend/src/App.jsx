@@ -1,8 +1,15 @@
+import { useRoutes } from "react-router";
+import { routes } from "./routes/routesConfig";
+import Header from "./components/Header";
+
 function App() {
+  const routing = useRoutes(routes);
+
   return (
-    <div>
-      <h1 className="text-8xl text-red-500 font-bold">HELLO</h1>
-    </div>
+    <>
+      <Header />
+      {routing}
+    </>
   );
 }
 
