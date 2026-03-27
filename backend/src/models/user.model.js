@@ -33,10 +33,13 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    avatarPublicId: {
+      type: String,
+    },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 userSchema.pre("save", async function () {
