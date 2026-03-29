@@ -48,8 +48,8 @@ const listingSchema = new Schema(
     },
     imageUrls: [
       {
-        type: String,
-        required: [true, "Image URL is required"],
+        url: String,
+        public_id: String,
       },
     ],
     userRef: {
