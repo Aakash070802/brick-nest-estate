@@ -385,6 +385,10 @@ const verifyRestoreUser = async (req, res) => {
     purpose: "restore-account",
   }).sort({ createdAt: -1 });
 
+  if (!record) {
+    throw new ApiError(400, "OTP not found");
+  }
+
   // EXPIRY CHECK
   if (record.expiresAt < new Date()) {
     await Otp.deleteOne({ _id: record._id });
@@ -411,6 +415,10 @@ const verifyRestoreUser = async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
+  if (user.isActive) {
+    throw new ApiError(400, "Account already active");
+  }
+
   // RESTORE ACCOUNT
   user.isActive = true;
   await user.save({ validateBeforeSave: false });
@@ -418,7 +426,18 @@ const verifyRestoreUser = async (req, res) => {
   // DELETE OTP
   await Otp.deleteOne({ _id: record._id });
 
-  return res.json(new ApiResponse(200, "Account restored successfully"));
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshToken(user._id);
+
+  const options = {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+  };
+
+  return res
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(200, "Account restored successfully"));
 };
 
 export {
