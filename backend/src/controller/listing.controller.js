@@ -5,7 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 
 /**
- * @function createListing
+ * @private createListing
  * @description Creates a new listing
  * @body { name: string, description: string, address: string, regularPrice: number, discountedPrice: number, bathrooms: number, bedrooms: number, furnished: boolean, parking: boolean, type: string, offer: boolean }
  * @POST /api/listing/create
@@ -84,7 +84,7 @@ const createListing = async (req, res) => {
 };
 
 /**
- * @function getUserListings
+ * @private getUserListings
  * @description Retrieves all listings for a specific user
  * @GET /api/listing/my-lists
  */
@@ -105,4 +105,52 @@ const getUserListings = async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "Property Fetched Successfully", property));
 };
-export { createListing, getUserListings };
+
+const getAllListings = async (req, res) => {
+  const {
+    limit = 10,
+    page = 1,
+    search = "",
+    type,
+    offer,
+    furnished,
+    parking,
+    sort = "createdAt",
+    order = "asc",
+  } = req.query;
+
+  const query = {};
+
+  // search
+  if (search) {
+    query.name = { $regex: search, $options: "i" };
+  }
+
+  // filters
+  if (type && type !== "all") {
+    query.type = type;
+  }
+
+  if (offer !== undefined) {
+    query.offer = offer === "true";
+  }
+
+  if (furnished !== undefined) {
+    query.furnished = furnished === "true";
+  }
+
+  if (parking !== undefined) {
+    query.parking = parking === "true";
+  }
+
+  // sorting
+  const sortOrder = order === "asc" ? 1 : -1;
+
+  const property = Listing.find(query)
+    .sort({ [sort]: sortOrder })
+    .limit(Number(limit))
+    .skip((page - 1) * limit);
+
+  return res.status(200).json(200, "Properties Fetched Successfully", property);
+};
+export { createListing, getUserListings, getAllListings };
