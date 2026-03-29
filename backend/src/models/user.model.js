@@ -64,7 +64,7 @@ userSchema.methods.generateAccessToken = function () {
     },
     config.ACCESS_TOKEN_KEY,
     {
-      expiresIn: "15m",
+      expiresIn: "1d",
     }
   );
 };
