@@ -106,6 +106,12 @@ const getUserListings = async (req, res) => {
     .json(new ApiResponse(200, "Property Fetched Successfully", property));
 };
 
+/**
+ * @private getAllListings
+ * @description Retrieves all listings with optional filters and pagination
+ * @GET /api/listing/all
+ * @query { limit: number, page: number, search: string, type: string, offer: boolean, furnished: boolean, parking: boolean, sort: string, order: string }
+ */
 const getAllListings = async (req, res) => {
   const {
     limit = 10,
@@ -153,4 +159,5 @@ const getAllListings = async (req, res) => {
 
   return res.status(200).json(200, "Properties Fetched Successfully", property);
 };
+
 export { createListing, getUserListings, getAllListings };
