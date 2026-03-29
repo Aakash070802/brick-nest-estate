@@ -37,4 +37,9 @@ router.route("/logout").get(authMiddleware, logoutController);
  */
 router.route("/refresh-token").post(refreshTokenController);
 
+/**
+ * @POST /api/auth/request-restore-account
+ */
+router.router("/request-restore-account").post();
+
 export default router;

@@ -25,6 +25,18 @@ if (!process.env.CLOUDINARY_CLOUD_NAME) {
 if (!process.env.NODE_ENV) {
   throw new Error("NODE_ENV is not defined at ENV file.");
 }
+if (!process.env.GOOGLE_CLIENT_ID) {
+  throw new Error("GOOGLE_CLIENT_ID is not defined at ENV file.");
+}
+if (!process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error("GOOGLE_CLIENT_SECRET is not defined at ENV file.");
+}
+if (!process.env.GOOGLE_REFRESH_TOKEN) {
+  throw new Error("GOOGLE_REFRESH_TOKEN is not defined at ENV file.");
+}
+if (!process.env.GOOGLE_USER) {
+  throw new Error("GOOGLE_USER is not defined at ENV file.");
+}
 
 const config = {
   PORT: process.env.PORT || 3000,
@@ -35,6 +47,10 @@ const config = {
   CLOUD_API: process.env.CLOUDINARY_API_KEY,
   CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   NODE_ENV: process.env.NODE_ENV,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
+  GOOGLE_USER: process.env.GOOGLE_USER,
 };
 
 export { config };

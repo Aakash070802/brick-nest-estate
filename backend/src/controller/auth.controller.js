@@ -306,6 +306,16 @@ const refreshTokenController = async (req, res) => {
   }
 };
 
+/**
+ * @function requestRestoreAccount
+ * @description Handles the request for account restoration by generating an OTP and sending it to the user's email
+ * @body {string} email - The email of the user requesting account restoration (required)
+ * @POST /api/auth/request-restore-account
+ */
+const requestRestoreAccount = async (req, res) => {
+  const { emai };
+};
+
 export {
   registerController,
   loginController,
