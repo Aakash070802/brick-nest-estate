@@ -7,8 +7,11 @@ if (!process.env.PORT) {
 if (!process.env.MONGO_URI) {
   throw new Error("MONGO_URI is not defined at ENV file.");
 }
-if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined at ENV file.");
+if (!process.env.ACCESS_TOKEN_SECRET) {
+  throw new Error("ACCESS_TOKEN_SECRET is not defined at ENV file.");
+}
+if (!process.env.REFRESH_TOKEN_SECRET) {
+  throw new Error("REFRESH_TOKEN_SECRET is not defined at ENV file.");
 }
 if (!process.env.CLOUDINARY_API_SECRET) {
   throw new Error("CLOUDINARY_API_SECRET is not defined at ENV file.");
@@ -26,7 +29,8 @@ if (!process.env.NODE_ENV) {
 const config = {
   PORT: process.env.PORT || 3000,
   MONGO: process.env.MONGO_URI,
-  JWT_SECRET: process.env.JWT_SECRET,
+  ACCESS_TOKEN_KEY: process.env.ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_KEY: process.env.REFRESH_TOKEN_SECRET,
   CLOUD_SECRET: process.env.CLOUDINARY_API_SECRET,
   CLOUD_API: process.env.CLOUDINARY_API_KEY,
   CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,

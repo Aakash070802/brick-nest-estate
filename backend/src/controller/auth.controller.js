@@ -6,6 +6,29 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import Blacklist from "../models/blacklist.model.js";
 
+/**
+ * @function generateAccessTokenAndRefreshToken
+ * @description Generates access token and refresh token for a user
+ * @returns {Object} An object containing access token and refresh token
+ */
+const generateAccessTokenAndRefreshToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating refresh and access tokens!"
+    );
+  }
+};
+
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -81,30 +104,31 @@ const loginController = async (req, res) => {
     throw new ApiError(401, "Invalid Credentials!");
   }
 
+  /* GENERATE ACCESS AND REFRESH TOKEN */
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshToken(user._id);
+
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: config.NODE_ENV === "production",
   };
-
-  const token = jwt.sign(
-    {
-      id: user?._id,
-      email: user?.email,
-    },
-    config.JWT_SECRET,
-    {
-      expiresIn: "1d",
-    }
-  );
 
   const loggedInUser = user.toObject();
   delete loggedInUser.password;
+  delete loggedInUser.refreshToken;
 
   return res
     .status(200)
-    .cookie("token", token, options)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
     .json(
-      new ApiResponse(200, "User logged In successfully", loggedInUser, token)
+      new ApiResponse(
+        200,
+        "User logged In successfully",
+        loggedInUser,
+        accessToken,
+        refreshToken
+      )
     );
 };
 
@@ -117,30 +141,23 @@ const googleController = async (req, res) => {
 
   let user = await User.findOne({ email });
 
-  // If user exists → login
+  const options = {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+  };
 
   if (user) {
-    const token = jwt.sign(
-      {
-        id: user?._id,
-        email: user?.email,
-      },
-      config.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshToken(user._id);
 
     return res
       .status(200)
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: config.NODE_ENV === "production",
-      })
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(new ApiResponse(200, "Login success", user));
   }
 
-  // If user doesn't exist → create
+  // If user doesn't exist → create (Google Signup)
   const randomPassword = Math.random().toString(36).slice(-8);
 
   const newUser = await User.create({
@@ -150,44 +167,88 @@ const googleController = async (req, res) => {
     avatar: photo,
   });
 
-  const token = jwt.sign(
-    {
-      id: newUser._id,
-      email: newUser.email,
-    },
-    config.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshToken(newUser._id);
 
   return res
     .status(201)
-    .cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    })
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
     .json(new ApiResponse(201, "Google signup success", newUser));
 };
 
 const logoutController = async (req, res) => {
-  const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+  const refreshToken = req.cookies?.refreshToken;
 
-  if (!token) {
+  if (!refreshToken) {
     throw new ApiError(
       401,
       "Unauthorized Access, token is required for logout!"
     );
   }
 
-  res.clearCookie("token", "", {
-    httpOnly: true,
-    secure: true,
-  });
+  const user = await User.findOne({ refreshToken });
 
-  await Blacklist.create({ token });
-
+  if (user) {
+    user.refreshToken = null;
+    await user.save({ validateBeforeSave: false });
+  }
   return res
     .status(200)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
     .json(new ApiResponse(200, "User Logged out successfully"));
+};
+
+const refreshTokenController = async (req, res) => {
+  const incomingRefreshToken = req.cookies?.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Unauthorized Access, token is required!");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      config.REFRESH_TOKEN_KEY
+    );
+
+    const user = await User.findById(decodedToken?.id);
+
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh Token is expired or used");
+    }
+
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshToken(user._id);
+
+    const options = {
+      httpOnly: true,
+      secure: config.NODE_ENV === "production",
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken },
+          "Access Token Refreshed Successfully"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(
+      401,
+      error?.message ||
+        "Something went wrong during Refreshing the Access Token"
+    );
+  }
 };
 
 export {
@@ -195,4 +256,5 @@ export {
   loginController,
   googleController,
   logoutController,
+  refreshTokenController,
 };

@@ -4,6 +4,7 @@ import {
   googleController,
   loginController,
   logoutController,
+  refreshTokenController,
   registerController,
 } from "../controller/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
@@ -26,8 +27,14 @@ router.route("/login").post(loginController);
 router.route("/google").post(googleController);
 
 /**
+ * @private authMiddleware
  * - GET /api/auth/logout
  */
 router.route("/logout").get(authMiddleware, logoutController);
+
+/**
+ * - POST /api/auth/refreshToken
+ */
+router.route("/refreshToken").post(refreshTokenController);
 
 export default router;
