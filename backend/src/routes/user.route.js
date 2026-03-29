@@ -6,6 +6,7 @@ import {
   updateUserController,
 } from "../controller/user.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
@@ -30,7 +31,9 @@ router.route("/me").patch(authMiddleware, updateUserController);
  * @body { avatar: string }
  * @PATCH /api/user/me/avatar
  */
-router.route("/me/avatar").patch(authMiddleware, updateAvatarController);
+router
+  .route("/me/avatar")
+  .patch(authMiddleware, upload.single("avatar"), updateAvatarController);
 
 /**
  * @private changePassword

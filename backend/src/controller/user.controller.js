@@ -2,6 +2,10 @@ import { config } from "../config/config.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
 /**
  * @private getUser
@@ -71,7 +75,36 @@ const updateUserController = async (req, res) => {
  * @body { avatar: string }
  * @PATCH /api/user/me/avatar
  */
-const updateAvatarController = async (req, res) => {};
+const updateAvatarController = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(401, "Unauthorized Access, user not found!");
+  }
+
+  if (!req.file?.path) {
+    throw new ApiError(400, "Avatar file is required");
+  }
+
+  const uploaded = await uploadOnCloudinary(req.file?.path);
+
+  if (!uploaded) {
+    throw new ApiError(500, "Avatar upload failed!");
+  }
+
+  if (user?.avatarPublicId) {
+    await deleteFromCloudinary(user?.avatarPublicId);
+  }
+
+  user.avatar = uploaded.secure_url;
+  user.avatarPublicId = uploaded.public_id;
+
+  const updatedUser = await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Avatar Updated Successfully.", updatedUser));
+};
 
 /**
  * @private changePassword
