@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   changePasswordController,
+  deleteUser,
   getUser,
   updateAvatarController,
   updateUserController,
@@ -42,5 +43,12 @@ router
  * @PATCH /api/user/me/password
  */
 router.route("/me/password").patch(authMiddleware, changePasswordController);
+
+/**
+ * @private deleteUser
+ * @description Deletes a user by their ID.
+ * @DELETE /api/user/me
+ */
+router.route("/me").delete(authMiddleware, deleteUser);
 
 export default router;

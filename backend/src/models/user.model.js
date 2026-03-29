@@ -30,13 +30,16 @@ const userSchema = new Schema(
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
-
     avatar: {
       type: String,
       default: "",
     },
     avatarPublicId: {
       type: String,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     refreshToken: {
       type: String,

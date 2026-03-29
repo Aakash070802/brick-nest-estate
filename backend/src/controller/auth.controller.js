@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-
+import crypto from "crypto";
 /**
  * @function generateAccessTokenAndRefreshToken
  * @description Generates access token and refresh token for a user
@@ -26,6 +26,19 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
       "Something went wrong while generating refresh and access tokens!"
     );
   }
+};
+
+/**
+ * @function sanitizeUser
+ * @description Sanitizes the user object by removing sensitive fields like password and refreshToken
+ * @param {Object} user - The user object to be sanitized
+ * @returns {Object} The sanitized user object without password and refreshToken
+ */
+const sanitizeUser = (user) => {
+  const obj = user.toObject();
+  delete obj.password;
+  delete obj.refreshToken;
+  return obj;
 };
 
 /**
@@ -114,6 +127,10 @@ const loginController = async (req, res) => {
     throw new ApiError(401, "Invalid Email ID or Username!");
   }
 
+  if (!user.isActive) {
+    throw new ApiError(403, "Account is deactivated");
+  }
+
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
@@ -129,23 +146,13 @@ const loginController = async (req, res) => {
     secure: config.NODE_ENV === "production",
   };
 
-  const loggedInUser = user.toObject();
-  delete loggedInUser.password;
-  delete loggedInUser.refreshToken;
+  const loggedInUser = sanitizeUser(user);
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        "User logged In successfully",
-        loggedInUser,
-        accessToken,
-        refreshToken
-      )
-    );
+    .json(new ApiResponse(200, "User logged In successfully", loggedInUser));
 };
 
 /**
@@ -165,6 +172,10 @@ const googleController = async (req, res) => {
 
   let user = await User.findOne({ email });
 
+  if (user && !user.isActive) {
+    throw new ApiError(403, "Account is deactivated");
+  }
+
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
@@ -174,15 +185,17 @@ const googleController = async (req, res) => {
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshToken(user._id);
 
+    const safeUser = sanitizeUser(user);
+
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(new ApiResponse(200, "Login success", user));
+      .json(new ApiResponse(200, "Login success", safeUser));
   }
 
   // If user doesn't exist → create (Google Signup)
-  const randomPassword = Math.random().toString(36).slice(-8);
+  const randomPassword = crypto.randomBytes(16).toString("hex");
 
   const newUser = await User.create({
     username: name.replace(/\s+/g, "").toLowerCase(),
@@ -194,11 +207,13 @@ const googleController = async (req, res) => {
   const { accessToken, refreshToken } =
     await generateAccessTokenAndRefreshToken(newUser._id);
 
+  const safeNewUser = sanitizeUser(newUser);
+
   return res
     .status(201)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json(new ApiResponse(201, "Google signup success", newUser));
+    .json(new ApiResponse(201, "Google signup success", safeNewUser));
 };
 
 /**
@@ -253,6 +268,10 @@ const refreshTokenController = async (req, res) => {
 
     if (!user) {
       throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    if (!user.isActive) {
+      throw new ApiError(403, "Account is deactivated");
     }
 
     if (incomingRefreshToken !== user?.refreshToken) {

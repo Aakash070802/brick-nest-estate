@@ -62,11 +62,13 @@ const updateUserController = async (req, res) => {
 
   const updatedUser = await user.save();
 
+  const safeUser = updatedUser.toObject();
+  delete safeUser.password;
+  delete safeUser.refreshToken;
+
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, "User Details Updated successfully!", updatedUser)
-    );
+    .json(new ApiResponse(200, "User Details Updated successfully!", safeUser));
 };
 
 /**
@@ -101,9 +103,12 @@ const updateAvatarController = async (req, res) => {
 
   const updatedUser = await user.save();
 
+  const safeUser = updatedUser.toObject();
+  delete safeUser.password;
+  delete safeUser.refreshToken;
   return res
     .status(200)
-    .json(new ApiResponse(200, "Avatar Updated Successfully.", updatedUser));
+    .json(new ApiResponse(200, "Avatar Updated Successfully.", safeUser));
 };
 
 /**
@@ -128,11 +133,42 @@ const changePasswordController = async (req, res) => {
   }
 
   user.password = newPassword;
-  await user.save({ validateBeforeSave: false });
+  await user.save();
 
   return res
     .status(200)
     .json(new ApiResponse(200, "Password changed Successfully", {}));
+};
+
+/**
+ * @private deleteUser
+ * @description Deletes a user by their ID.
+ * @DELETE /api/user/me
+ */
+const deleteUser = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(401, "Unauthorized Access, user not found!");
+  }
+
+  try {
+    if (user.avatarPublicId) {
+      await deleteFromCloudinary(user.avatarPublicId);
+    }
+  } catch (err) {
+    console.error("Old avatar delete failed:", err);
+  }
+
+  user.isActive = false;
+  user.refreshToken = "";
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
+    .json(new ApiResponse(200, "User Account deactivated successfully."));
 };
 
 export {
@@ -140,4 +176,5 @@ export {
   updateUserController,
   updateAvatarController,
   changePasswordController,
+  deleteUser,
 };
