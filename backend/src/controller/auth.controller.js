@@ -4,13 +4,13 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import Blacklist from "../models/blacklist.model.js";
 
 /**
  * @function generateAccessTokenAndRefreshToken
  * @description Generates access token and refresh token for a user
  * @returns {Object} An object containing access token and refresh token
  */
+
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -190,7 +190,7 @@ const logoutController = async (req, res) => {
   const user = await User.findOne({ refreshToken });
 
   if (user) {
-    user.refreshToken = null;
+    user.refreshToken = "";
     await user.save({ validateBeforeSave: false });
   }
   return res

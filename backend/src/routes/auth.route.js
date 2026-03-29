@@ -33,8 +33,8 @@ router.route("/google").post(googleController);
 router.route("/logout").get(authMiddleware, logoutController);
 
 /**
- * - POST /api/auth/refreshToken
+ * - POST /api/auth/refresh-token
  */
-router.route("/refreshToken").post(refreshTokenController);
+router.route("/refresh-token").post(refreshTokenController);
 
 export default router;
