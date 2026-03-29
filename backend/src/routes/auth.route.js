@@ -12,28 +12,28 @@ import { authMiddleware } from "../middleware/auth.middleware.js";
 const router = Router();
 
 /**
- * - POST /api/auth/register
+ * @POST /api/auth/register
  */
 router.route("/register").post(upload.single("avatar"), registerController);
 
 /**
- * - POST /api/auth/login
+ * @POST /api/auth/login
  */
 router.route("/login").post(loginController);
 
 /**
- * - POST /api/auth/google
+ * @POST /api/auth/google
  */
 router.route("/google").post(googleController);
 
 /**
  * @private authMiddleware
- * - GET /api/auth/logout
+ * @GET /api/auth/logout
  */
 router.route("/logout").get(authMiddleware, logoutController);
 
 /**
- * - POST /api/auth/refresh-token
+ * @POST /api/auth/refresh-token
  */
 router.route("/refresh-token").post(refreshTokenController);
 

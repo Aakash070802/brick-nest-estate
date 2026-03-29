@@ -3,6 +3,15 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 
+/**
+ * @function authMiddleware
+ * @description Middleware to authenticate users
+ * @param {Object} req - The request object
+ * @param {Object} _ - The response object (not used)
+ * @param {Function} next - The next middleware function
+ * @returns {req.user} The authenticated user object attached to the request
+ * @throws {ApiError} Throws an ApiError if authentication fails
+ */
 const authMiddleware = async (req, _, next) => {
   const token =
     req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
@@ -32,6 +41,7 @@ const authMiddleware = async (req, _, next) => {
     req.user = user;
     next();
   } catch (error) {
+    console.log("MIDDLEWARE Error: ", error);
     throw new ApiError(401, "Unauthorized Access");
   }
 };

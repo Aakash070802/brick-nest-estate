@@ -10,7 +10,6 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
  * @description Generates access token and refresh token for a user
  * @returns {Object} An object containing access token and refresh token
  */
-
 const generateAccessTokenAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -29,6 +28,15 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
   }
 };
 
+/**
+ * @function registerController
+ * @description Handles user registration
+ * @body {string} username - The username of the user
+ * @body {string} email - The email of the user
+ * @body {string} password - The password of the user
+ * @body {file} avatar - The avatar image file of the user (optional)
+ * @POST /api/auth/register
+ */
 const registerController = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -79,6 +87,14 @@ const registerController = async (req, res) => {
     .json(new ApiResponse(201, "User created Successfully!", safeUser));
 };
 
+/**
+ * @function loginController
+ * @description Handles user login
+ * @body {string} username - The username of the user (optional if email is provided)
+ * @body {string} email - The email of the user (optional if username is provided)
+ * @body {string} password - The password of the user
+ * @POST /api/auth/login
+ */
 const loginController = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -132,6 +148,14 @@ const loginController = async (req, res) => {
     );
 };
 
+/**
+ * @function googleController
+ * @description Handles Google authentication
+ * @body {string} email - The email of the user (required)
+ * @body {string} name - The name of the user (required)
+ * @body {string} photo - The URL of the user's Google profile photo (optional)
+ * @POST /api/auth/google
+ */
 const googleController = async (req, res) => {
   const { email, name, photo } = req.body;
 
@@ -177,6 +201,12 @@ const googleController = async (req, res) => {
     .json(new ApiResponse(201, "Google signup success", newUser));
 };
 
+/**
+ * @function logoutController
+ * @description Handles user logout
+ * @body {string} refreshToken - The refresh token of the user (required in cookies)
+ * @GET /api/auth/logout
+ */
 const logoutController = async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
 
@@ -200,6 +230,12 @@ const logoutController = async (req, res) => {
     .json(new ApiResponse(200, "User Logged out successfully"));
 };
 
+/**
+ * @function refreshTokenController
+ * @description Handles refreshing of access token using refresh token
+ * @body {string} refreshToken - The refresh token of the user (required in cookies)
+ * @POST /api/auth/refresh-token
+ */
 const refreshTokenController = async (req, res) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
 
