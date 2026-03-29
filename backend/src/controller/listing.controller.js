@@ -83,4 +83,26 @@ const createListing = async (req, res) => {
     .json(new ApiResponse(201, listing, "Listing created successfully"));
 };
 
-export { createListing };
+/**
+ * @function getUserListings
+ * @description Retrieves all listings for a specific user
+ * @GET /api/listing/my-lists
+ */
+const getUserListings = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(400, "Unauthorized Access, User not found!");
+  }
+
+  const property = await Listing.find({ userRef: user._id });
+
+  if (!property || property.length === 0) {
+    throw new ApiError(404, "Property not found!");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Property Fetched Successfully", property));
+};
+export { createListing, getUserListings };
