@@ -112,7 +112,28 @@ const updateAvatarController = async (req, res) => {
  * @body  { currentPassword: string, newPassword: string }
  * @PATCH /api/user/me/password
  */
-const changePasswordController = async (req, res) => {};
+const changePasswordController = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Current and new Password required!");
+  }
+
+  const user = await User.findById(req.user?._id).select("+password");
+
+  const isPasswordMatch = await user.isPasswordCorrect(currentPassword);
+
+  if (!isPasswordMatch) {
+    throw new ApiError(400, "Invalid password!");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Password changed Successfully", {}));
+};
 
 export {
   getUser,
