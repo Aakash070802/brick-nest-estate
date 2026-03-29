@@ -25,11 +25,13 @@ app.use(cookieParser());
  */
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
+import listingRouter from "./routes/listing.route.js";
 
 /**
  * - ROUTES
  */
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/listing", listingRouter);
 
 export { app };

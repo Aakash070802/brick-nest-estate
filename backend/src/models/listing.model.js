@@ -50,6 +50,7 @@ const listingSchema = new Schema(
       {
         url: String,
         public_id: String,
+        _id: false,
       },
     ],
     userRef: {

@@ -4,6 +4,12 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 
+/**
+ * @function createListing
+ * @description Creates a new listing
+ * @body { name: string, description: string, address: string, regularPrice: number, discountedPrice: number, bathrooms: number, bedrooms: number, furnished: boolean, parking: boolean, type: string, offer: boolean }
+ * @POST /api/listing/create
+ */
 const createListing = async (req, res) => {
   const {
     name,
@@ -67,11 +73,14 @@ const createListing = async (req, res) => {
     parking,
     type,
     offer,
-    imageUrls: uploadedImages.map((img) => img.url),
+    imageUrls: uploadedImages,
     userRef: req.user._id,
   });
+  //   console.log(uploadedImages);
 
   return res
     .status(201)
     .json(new ApiResponse(201, listing, "Listing created successfully"));
 };
+
+export { createListing };

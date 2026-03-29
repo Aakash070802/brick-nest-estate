@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { upload } from "../middlewares/multer.middleware.js";
-import { createListing } from "../controllers/listing.controller.js";
+import { upload } from "../middleware/multer.middleware.js";
+import { createListing } from "../controller/listing.controller.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -9,7 +10,7 @@ const router = Router();
  */
 router.post(
   "/create",
-  verifyJWT,
+  authMiddleware,
   upload.array("images", 6), // max 6 images
   createListing
 );
