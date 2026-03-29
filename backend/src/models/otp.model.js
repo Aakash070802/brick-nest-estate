@@ -22,6 +22,7 @@ const otpSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
+      index: { expires: 0 },
     },
 
     purpose: {

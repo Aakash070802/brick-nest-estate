@@ -1,10 +1,15 @@
 import { config } from "../config/config.js";
 import { User } from "../models/user.model.js";
+import { Otp } from "../models/otp.model.js";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import crypto from "crypto";
+import { generateOtp, getOtpHtml } from "../utils/otp.js";
+import { sendEmail } from "../services/email.service.js";
+import bcrypt from "bcryptjs";
+
 /**
  * @function generateAccessTokenAndRefreshToken
  * @description Generates access token and refresh token for a user
@@ -308,12 +313,112 @@ const refreshTokenController = async (req, res) => {
 
 /**
  * @function requestRestoreAccount
- * @description Handles the request for account restoration by generating an OTP and sending it to the user's email
- * @body {string} email - The email of the user requesting account restoration (required)
+ * @description Handles the request for restoring a deactivated account by sending an OTP to the user's email
+ * @body {string} email - The email of the user requesting account restoration
  * @POST /api/auth/request-restore-account
  */
 const requestRestoreAccount = async (req, res) => {
-  const { emai };
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user || user?.isActive) {
+    throw new ApiError(400, "Invalid request");
+  }
+
+  // Rate limiting 1 OTP/sec
+  const recentOtp = await Otp.findOne({
+    email,
+    purpose: "restore-account",
+    createdAt: { $gt: new Date(Date.now() - 60 * 1000) },
+  });
+
+  if (recentOtp) {
+    throw new ApiError(429, "Please wait before requesting another OTP");
+  }
+  const count = await Otp.countDocuments({
+    email,
+    createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) },
+  });
+
+  if (count >= 5) {
+    throw new ApiError(429, "Too many OTP requests. Try later.");
+  }
+
+  // DELETE old OTPs
+  await Otp.deleteMany({ email, purpose: "restore-account" });
+
+  const otp = generateOtp();
+  const html = getOtpHtml(otp);
+
+  const otpHash = await bcrypt.hash(otp, 10);
+
+  await Otp.create({
+    email,
+    userId: user?._id,
+    otpHash,
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+    purpose: "restore-account",
+  });
+
+  await sendEmail(email, "OTP verification", `Your OTP code is: ${otp}`, html);
+
+  return res.json(new ApiResponse(200, "OTP sent"));
+};
+
+/**
+ * @function verifyRestoreUser
+ * @description Verifies the OTP provided by the user for account restoration and reactivates the account if the OTP is valid
+ * @body {string} email - The email of the user requesting account restoration
+ * @body {string} otp - The OTP provided by the user for verification
+ * @POST /api/auth/verify-restore-account
+ */
+const verifyRestoreUser = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    throw new ApiError(400, "Email and OTP are required");
+  }
+
+  const record = await Otp.findOne({
+    email,
+    purpose: "restore-account",
+  }).sort({ createdAt: -1 });
+
+  // EXPIRY CHECK
+  if (record.expiresAt < new Date()) {
+    await Otp.deleteOne({ _id: record._id });
+    throw new ApiError(400, "OTP expired");
+  }
+
+  // ATTEMPT LIMIT
+  if (record.attempts >= 5) {
+    await Otp.deleteOne({ _id: record._id });
+    throw new ApiError(429, "Too many attempts");
+  }
+
+  const isMatch = await bcrypt.compare(otp, record.otpHash);
+
+  if (!isMatch) {
+    record.attempts += 1;
+    await record.save();
+    throw new ApiError(400, "Invalid OTP");
+  }
+
+  const user = await User.findById(record.userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // RESTORE ACCOUNT
+  user.isActive = true;
+  await user.save({ validateBeforeSave: false });
+
+  // DELETE OTP
+  await Otp.deleteOne({ _id: record._id });
+
+  return res.json(new ApiResponse(200, "Account restored successfully"));
 };
 
 export {
@@ -322,4 +427,6 @@ export {
   googleController,
   logoutController,
   refreshTokenController,
+  requestRestoreAccount,
+  verifyRestoreUser,
 };

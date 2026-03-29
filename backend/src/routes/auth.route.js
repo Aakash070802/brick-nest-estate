@@ -6,6 +6,8 @@ import {
   logoutController,
   refreshTokenController,
   registerController,
+  requestRestoreAccount,
+  verifyRestoreUser,
 } from "../controller/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
@@ -40,6 +42,9 @@ router.route("/refresh-token").post(refreshTokenController);
 /**
  * @POST /api/auth/request-restore-account
  */
-router.router("/request-restore-account").post();
-
+router.route("/request-restore-account").post(requestRestoreAccount);
+/**
+ * @POST /api/auth/verify-restore-account
+ */
+router.route("/verify-restore-account").post(verifyRestoreUser);
 export default router;
