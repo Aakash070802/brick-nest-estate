@@ -187,11 +187,13 @@ const deleteListing = async (req, res) => {
   // Delete from cloudinary
   const images = property.imageUrls || [];
 
-  for (const img of images) {
-    if (img.public_id) {
-      await deleteFromCloudinary(img.public_id);
-    }
-  }
+  await Promise.all(
+    images.map((img) =>
+      deleteFromCloudinary(img.public_id).catch((err) => {
+        console.error("Cloudinary delete failed:", err);
+      })
+    )
+  );
 
   // Delete from DB
   await property.deleteOne();
