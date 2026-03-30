@@ -2,6 +2,7 @@ import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
   createListing,
+  deleteListing,
   getAllListings,
   getUserListings,
 } from "../controller/listing.controller.js";
@@ -28,5 +29,10 @@ router.route("/my-lists").get(authMiddleware, getUserListings);
  * @GET /api/listing/all
  */
 router.route("/all").get(getAllListings);
+
+/**
+ * @DELETE /api/listing/my-lists/:listId
+ */
+router.route("/my-lists/:listId").delete(authMiddleware, deleteListing);
 
 export default router;

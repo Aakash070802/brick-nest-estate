@@ -160,4 +160,45 @@ const getAllListings = async (req, res) => {
   return res.status(200).json(200, "Properties Fetched Successfully", property);
 };
 
-export { createListing, getUserListings, getAllListings };
+/**
+ * @private deleteListing
+ * @description Deletes a listing by ID, only if the authenticated user is the owner
+ * @DELETE /api/listing/my-lists/:listId
+ */
+const deleteListing = async (req, res) => {
+  const { listId } = req.params;
+  const userId = req.user?._id;
+
+  if (!listId) {
+    throw new ApiError(400, "Listing ID is required");
+  }
+
+  const property = await Listing.findById(listId);
+
+  if (!property) {
+    throw new ApiError(404, "Property not found");
+  }
+
+  // OwnerShip
+  if (property.userRef.toString() !== userId.toString()) {
+    throw new ApiError(403, "You are not allowed to delete this property!");
+  }
+
+  // Delete from cloudinary
+  const images = property.imageUrls || [];
+
+  for (const img of images) {
+    if (img.public_id) {
+      await deleteFromCloudinary(img.public_id);
+    }
+  }
+
+  // Delete from DB
+  await property.deleteOne();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Property deleted successfully"));
+};
+
+export { createListing, getUserListings, getAllListings, deleteListing };
