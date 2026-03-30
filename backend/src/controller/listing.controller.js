@@ -203,4 +203,117 @@ const deleteListing = async (req, res) => {
     .json(new ApiResponse(200, null, "Property deleted successfully"));
 };
 
-export { createListing, getUserListings, getAllListings, deleteListing };
+const updateListing = async (req, res) => {
+  const { listId } = req.params;
+  const userId = req.user?._id;
+
+  if (!listId) {
+    throw new ApiError(400, "Listing ID is required!");
+  }
+
+  const property = await Listing.findById(listId);
+
+  // OwnerShip
+  if (property.userRef.toString() !== userId.toString()) {
+    throw new ApiError(403, "Not authorized");
+  }
+
+  // Parse Keep Images
+  let keepImages = [];
+  if (req.body.keepImages) {
+    try {
+      keepImages = JSON.parse(req.body.keepImages);
+    } catch (error) {
+      throw new ApiError(400, "Invalid keepImages format");
+    }
+  }
+  // console.log("BODY:", req.body);
+
+  // Old images
+  const oldImages = property.imageUrls;
+
+  // Images to delete
+  const imagesToDelete = oldImages.filter(
+    (oldImg) =>
+      !keepImages.some((keepImg) => keepImg.public_id === oldImg.public_id)
+  );
+
+  // Delete from cloudinary
+  await Promise.all(
+    imagesToDelete.map((img) =>
+      deleteFromCloudinary(img.public_id).catch((err) => {
+        console.log("Delete Failed: ", err);
+      })
+    )
+  );
+
+  // Upload new Images
+  let newImages = [];
+
+  if (req.files && req.files.length > 0) {
+    newImages = await Promise.all(
+      req.files.map(async (file) => {
+        const result = await uploadOnCloudinary(file.path);
+        if (!result) {
+          throw new ApiError(500, "Image upload failed");
+        }
+        return {
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+      })
+    );
+  }
+  // console.log("FILES:", req.files);
+
+  // Final Images
+  const finalImages = [...keepImages, ...newImages];
+
+  const allowedFields = [
+    "name",
+    "description",
+    "address",
+    "regularPrice",
+    "discountedPrice",
+    "bathrooms",
+    "bedrooms",
+    "furnished",
+    "parking",
+    "type",
+    "offer",
+  ];
+
+  const updates = {};
+
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
+  if (
+    updates.discountedPrice &&
+    updates.regularPrice &&
+    updates.discountedPrice >= updates.regularPrice
+  ) {
+    throw new ApiError(400, "Invalid price logic");
+  }
+
+  updates.imageUrls = finalImages;
+
+  const updateProperty = await Listing.findByIdAndUpdate(listId, updates, {
+    new: true,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updateProperty, "Listing updated successfully"));
+};
+
+export {
+  createListing,
+  getUserListings,
+  getAllListings,
+  deleteListing,
+  updateListing,
+};

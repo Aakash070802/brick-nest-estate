@@ -5,6 +5,7 @@ import {
   deleteListing,
   getAllListings,
   getUserListings,
+  updateListing,
 } from "../controller/listing.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
@@ -34,5 +35,12 @@ router.route("/all").get(getAllListings);
  * @DELETE /api/listing/my-lists/:listId
  */
 router.route("/my-lists/:listId").delete(authMiddleware, deleteListing);
+
+/**
+ * @PATCH /api/listing/my-lists/:listId
+ */
+router
+  .route("/my-lists/:listId")
+  .patch(authMiddleware, upload.array("images", 6), updateListing);
 
 export default router;
