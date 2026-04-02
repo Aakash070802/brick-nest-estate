@@ -8,52 +8,28 @@ import Profile from "../pages/Profile";
 import Search from "../pages/Search";
 import UpdateListing from "../pages/UpdateListing";
 import PrivateRoute from "../components/PrivateRoute";
+import Layout from "../components/Layout";
 
 export const routes = [
-  /**
-   * - PUBLIC ROUTES
-   */
   {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/about",
-    element: <About />,
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/register",
-    element: <Register />,
-  },
-  {
-    path: "/search",
-    element: <Search />,
-  },
-  {
-    path: "/listing/:listingId",
-    element: <Listing />,
-  },
-  /**
-   * - PROTECTED ROUTES
-   */
-  {
-    element: <PrivateRoute />,
+    element: <Layout />,
     children: [
+      // PUBLIC
+      { path: "/", element: <Home /> },
+      { path: "/about", element: <About /> },
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
+      { path: "/search", element: <Search /> },
+      { path: "/listing/:listingId", element: <Listing /> },
+
+      // PROTECTED
       {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "/create-listing",
-        element: <CreateListing />,
-      },
-      {
-        path: "/update-listing/:listingId",
-        element: <UpdateListing />,
+        element: <PrivateRoute />,
+        children: [
+          { path: "/profile", element: <Profile /> },
+          { path: "/create-listing", element: <CreateListing /> },
+          { path: "/update-listing/:listingId", element: <UpdateListing /> },
+        ],
       },
     ],
   },

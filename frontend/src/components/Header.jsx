@@ -7,7 +7,7 @@ import { useTheme } from "../hooks/useTheme";
 
 const Header = () => {
   const location = useLocation();
-  const isSignIn = location.pathname === "/sign-in";
+  const isSignIn = location.pathname === "/login";
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -15,7 +15,7 @@ const Header = () => {
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="shadow-lg"
+      className="shadow-lg rounded-b-2xl"
     >
       <div className="flex justify-between items-center max-w-6xl mx-auto p-3 py-4">
         {/* LEFT NAV */}
@@ -67,14 +67,16 @@ const Header = () => {
         {/* CENTER */}
         <div className="flex items-center gap-4">
           {/* LOGO */}
-          <motion.img
-            src={theme === "light" ? darkLogo : lightLogo}
-            alt="logo"
-            className="h-16 object-contain"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          />
+          <Link to="/">
+            <motion.img
+              src={theme === "light" ? darkLogo : lightLogo}
+              alt="logo"
+              className="h-16 object-contain"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            />
+          </Link>
 
           {/* THEME TOGGLE */}
           <motion.button
@@ -107,7 +109,7 @@ const Header = () => {
           />
 
           <Link
-            to="/sign-up"
+            to="/register"
             className={`w-1/2 text-center text-sm font-medium z-10 leading-8 ${
               !isSignIn ? "text-white" : "text-(--color-text-muted)"
             }`}
@@ -116,7 +118,7 @@ const Header = () => {
           </Link>
 
           <Link
-            to="/sign-in"
+            to="/login"
             className={`w-1/2 text-center text-sm font-medium z-10 leading-8 ${
               isSignIn ? "text-white" : "text-(--color-text-muted)"
             }`}
