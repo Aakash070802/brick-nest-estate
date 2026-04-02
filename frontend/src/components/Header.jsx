@@ -1,41 +1,86 @@
-import { Link } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
+import darkLogo from "../assets/logo-dark.png";
+import lightLogo from "../assets/logo-light.png";
+import { IoMdSunny } from "react-icons/io";
+import { FaMoon } from "react-icons/fa";
+import { useEffect, useState } from "react";
 
 const Header = () => {
+  const [darkMode, setDarkMode] = useState(true);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
   return (
-    <header className="bg-slate-300 shadow-md ">
-      <div className="flex justify-between items-center max-w-6xl mx-auto p-3">
-        <Link to="/">
-          <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
-            <span className="text-slate-500">Brick</span>
-            <span className="text-slate-700">Nest</span>
-          </h1>
-        </Link>
-        <form className="bg-slate-100 p-3 rounded-lg flex items-center">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent focus:outline-none w-24 sm:w-64"
-          />
-          <FaSearch className="text-slate-600" />
-        </form>
-        <ul className="flex gap-4">
-          <Link to="/about">
-            <li className="hidden sm:inline text-slate-800 font-semibold hover:underline cursor-pointer">
-              About
-            </li>
+    <header className="w-full bg-bg text-text border-b border-border mx-auto">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* LEFT NAV */}
+        <div className="flex items-center gap-6 text-sm font-medium">
+          <Link to="/search?type=buy" className="hover:text-primary">
+            Buy
           </Link>
-          <Link to="/register">
-            <li className="hidden sm:inline text-slate-800 font-semibold hover:underline cursor-pointer">
-              Register
-            </li>
+          <Link to="/search?type=rent" className="hover:text-primary">
+            Rent
           </Link>
-          <Link to="/login">
-            <li className="text-slate-800 font-semibold hover:underline cursor-pointer">
-              Login
-            </li>
+          <Link to="/search?type=sell" className="hover:text-primary">
+            Sell
           </Link>
-        </ul>
+          <Link to="/about" className="hover:text-primary">
+            About Us
+          </Link>
+        </div>
+
+        {/* CENTER LOGO + THEME */}
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src={darkMode ? darkLogo : lightLogo}
+              alt="logo"
+              className="w-24 h-24"
+            />
+          </Link>
+
+          {/* THEME TOGGLE */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-lg hover:bg-primary/10 transition"
+          >
+            {darkMode ? <IoMdSunny /> : <FaMoon />}
+          </button>
+        </div>
+
+        {/* RIGHT ACTIONS */}
+        <div className="flex items-center gap-3 text-sm font-medium">
+          {/* SIGN UP */}
+          <Link
+            to="/register"
+            className={`px-4 py-2 rounded-xl transition ${
+              location.pathname === "/register"
+                ? "bg-primary text-btnText"
+                : "hover:text-primary"
+            }`}
+          >
+            Sign Up
+          </Link>
+
+          {/* SIGN IN */}
+          <Link
+            to="/login"
+            className={`px-4 py-2 rounded-xl transition ${
+              location.pathname === "/login"
+                ? "bg-primary text-btnText"
+                : "hover:text-primary"
+            }`}
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </header>
   );
