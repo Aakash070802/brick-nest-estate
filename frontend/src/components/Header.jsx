@@ -1,84 +1,92 @@
 import { Link, useLocation } from "react-router-dom";
+import { FaMoon, FaSun } from "react-icons/fa";
 import darkLogo from "../assets/logo-dark.png";
 import lightLogo from "../assets/logo-light.png";
-import { IoMdSunny } from "react-icons/io";
-import { FaMoon } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useTheme } from "../hooks/useTheme";
 
 const Header = () => {
-  const [darkMode, setDarkMode] = useState(true);
   const location = useLocation();
+  const isSignIn = location.pathname === "/sign-in";
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="w-full bg-bg text-text border-b border-border">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <header className="shadow-lg">
+      <div className="flex justify-between items-center max-w-6xl mx-auto p-3 py-6">
         {/* LEFT NAV */}
-        <div className="flex items-center gap-6 text-sm font-medium">
-          <Link to="/search?type=buy" className="hover:text-primary">
+        <div className="flex gap-6">
+          <Link
+            to="/search?type=buy"
+            className="font-medium text-sm sm:text-lg text-(--color-text)"
+          >
             Buy
           </Link>
-          <Link to="/search?type=rent" className="hover:text-primary">
+          <Link
+            to="/search?type=rent"
+            className="font-medium text-sm sm:text-lg text-(--color-text)"
+          >
             Rent
           </Link>
-          <Link to="/search?type=sell" className="hover:text-primary">
+          <Link
+            to="/search?type=sell"
+            className="font-medium text-sm sm:text-lg text-(--color-text)"
+          >
             Sell
           </Link>
-          <Link to="/about" className="hover:text-primary">
-            About Us
+          <Link
+            to="/about"
+            className="font-medium text-sm sm:text-lg text-(--color-text)"
+          >
+            About
           </Link>
         </div>
 
-        {/* CENTER LOGO + THEME */}
+        {/* CENTER (LOGO + THEME TOGGLE) */}
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={darkMode ? darkLogo : lightLogo}
-              alt="logo"
-              className="w-24 h-24"
-            />
-          </Link>
+          <img
+            src={theme === "light" ? darkLogo : lightLogo}
+            alt="logo"
+            className="h-20 object-contain"
+          />
 
           {/* THEME TOGGLE */}
           <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-lg hover:bg-primary/10 transition"
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-(--color-card) transition flex items-center justify-center"
           >
-            {darkMode ? <IoMdSunny /> : <FaMoon />}
+            {theme === "dark" ? (
+              <FaSun size={16} className="text-yellow-400" />
+            ) : (
+              <FaMoon size={16} className="text-(--color-text)" />
+            )}
           </button>
         </div>
 
-        {/* RIGHT ACTIONS */}
-        <div className="flex items-center gap-3 text-sm font-medium">
-          {/* SIGN UP */}
+        {/* AUTH BUTTONS */}
+        <div className="relative flex items-center w-40">
+          <div
+            className={`absolute w-1/2 h-8 rounded-full transition-all duration-300 ${
+              isSignIn ? "translate-x-full" : "translate-x-0"
+            }`}
+            style={{
+              background: "var(--gradient-primary)",
+            }}
+          />
           <Link
-            to="/register"
-            className={`px-4 py-2 rounded-xl transition ${
-              location.pathname === "/register"
-                ? "bg-primary text-btnText"
-                : "hover:text-primary"
+            to="/sign-up"
+            className={`w-1/2 text-center text-sm font-medium z-10 leading-8 ${
+              !isSignIn ? "text-white" : "text-(--color-text-muted)"
             }`}
           >
-            Sign Up
+            Sign up
           </Link>
-
-          {/* SIGN IN */}
           <Link
-            to="/login"
-            className={`px-4 py-2 rounded-xl transition ${
-              location.pathname === "/login"
-                ? "bg-primary text-btnText"
-                : "hover:text-primary"
+            to="/sign-in"
+            className={`w-1/2 text-center text-sm font-medium z-10 leading-8 ${
+              isSignIn ? "text-white" : "text-(--color-text-muted)"
             }`}
           >
-            Sign In
+            Sign in
           </Link>
         </div>
       </div>
