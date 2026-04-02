@@ -12,14 +12,18 @@ const userSlice = createSlice({
   reducers: {
     // AUTH
     loginStart: (state) => {
-      ((state.loading = true), (state.error = null));
+      state.loading = true;
+      state.error = null;
     },
     loginSuccess: (state, action) => {
-      ((state.currentUser = action.payload), (state.loading = false));
+      state.currentUser = action.payload;
+      state.loading = false;
     },
     loginFailure: (state, action) => {
-      ((state.error = action.payload), (state.loading = false));
+      state.error = action.payload;
+      state.loading = false;
     },
+
     // UPDATE
     updateUserStart: (state) => {
       state.loading = true;
@@ -33,12 +37,14 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+
     // DELETE
     deleteUserSuccess: (state) => {
       state.currentUser = null;
       state.loading = false;
       state.error = null;
     },
+
     // LOGOUT
     logOutUserSuccess: (state) => {
       state.currentUser = null;
