@@ -18,7 +18,7 @@ const Header = () => {
   }, [darkMode]);
 
   return (
-    <header className="w-full bg-bg text-text border-b border-border mx-auto">
+    <header className="w-full bg-bg text-text border-b border-border">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* LEFT NAV */}
         <div className="flex items-center gap-6 text-sm font-medium">
