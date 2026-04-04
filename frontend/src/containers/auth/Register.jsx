@@ -1,5 +1,92 @@
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import registerBgImg from "../../assets/register-bg.jpg";
+import { registerUser } from "../../services/authService";
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+} from "../../redux/features/userSlice";
+import RegisterForm from "../../components/common/RegisterForm";
+import { motion } from "framer-motion";
+
 const Register = () => {
-  return <div>Register</div>;
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    avatar: null,
+  });
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.user);
+
+  const handleChange = (e) => {
+    if (e.target.id === "avatar") {
+      setFormData({
+        ...formData,
+        avatar: e.target.files[0],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.id]: e.target.value,
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.username || !formData.email || !formData.password) {
+      return dispatch(loginFailure("All fields are required"));
+    }
+
+    try {
+      dispatch(loginStart());
+
+      // convert to FormData
+      const data = new FormData();
+      data.append("username", formData.username);
+      data.append("email", formData.email);
+      data.append("password", formData.password);
+
+      if (formData.avatar) {
+        data.append("avatar", formData.avatar);
+      }
+
+      const res = await registerUser(data);
+
+      dispatch(loginSuccess(res.data));
+      navigate("/login");
+    } catch (err) {
+      dispatch(loginFailure(err.response?.data?.message || "Register failed"));
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-(--color-bg)">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex w-225 rounded-2xl overflow-hidden"
+      >
+        <RegisterForm
+          formData={formData}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          loading={loading}
+          error={error}
+        />
+
+        <div className="w-1/2 hidden md:block">
+          <img src={registerBgImg} className="h-full w-full object-cover" />
+        </div>
+      </motion.div>
+    </div>
+  );
 };
 
 export default Register;
