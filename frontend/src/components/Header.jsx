@@ -15,7 +15,7 @@ const Header = () => {
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="shadow-lg rounded-b-2xl"
+      className="bg-transparent z-50 "
     >
       <div className="flex justify-between items-center max-w-6xl mx-auto p-3 py-4">
         {/* LEFT NAV */}
@@ -83,7 +83,7 @@ const Header = () => {
             onClick={toggleTheme}
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.1 }}
-            className="p-2 rounded-full bg-(--color-card) flex items-center justify-center"
+            className="p-2 rounded-full bg-(--color-card) flex items-center justify-center cursor-pointer"
           >
             {theme === "dark" ? (
               <FaSun size={16} className="text-yellow-400" />
