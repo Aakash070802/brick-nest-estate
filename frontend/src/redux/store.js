@@ -13,6 +13,16 @@ const persistConfig = {
   storage,
   version: 1,
   whitelist: ["user"],
+  transforms: [
+    {
+      in: (state) => ({
+        ...state,
+        loading: false, // never persist loading
+        error: null, // optional reset
+      }),
+      out: (state) => state,
+    },
+  ],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
