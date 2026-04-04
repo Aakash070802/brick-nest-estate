@@ -62,6 +62,7 @@ const Login = () => {
       const data = await loginWithGoogle();
 
       dispatch(loginSuccess(data));
+      toast.success("Welcome");
       navigate("/");
     } catch (err) {
       if (err.message !== "Google login cancelled") {
