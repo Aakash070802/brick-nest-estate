@@ -10,6 +10,7 @@ import {
 } from "../../redux/features/userSlice";
 import LoginForm from "../../components/common/LoginForm";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -36,6 +37,10 @@ const Login = () => {
       return dispatch(loginFailure("All fields are required"));
     }
 
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      return dispatch(loginFailure("Invalid email format"));
+    }
+
     try {
       dispatch(loginStart());
 
@@ -44,7 +49,8 @@ const Login = () => {
       dispatch(loginSuccess(data));
       navigate("/");
     } catch (err) {
-      dispatch(loginFailure(err.response?.data?.message || "Login failed"));
+      toast.error(err.message);
+      dispatch(loginFailure(null));
     }
   };
 

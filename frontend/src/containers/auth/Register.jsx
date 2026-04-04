@@ -3,13 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import registerBgImg from "../../assets/register-bg.jpg";
 import { registerUser } from "../../services/authService";
-import {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-} from "../../redux/features/userSlice";
+import { loginStart, loginFailure } from "../../redux/features/userSlice";
 import RegisterForm from "../../components/common/RegisterForm";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -41,13 +38,12 @@ const Register = () => {
     e.preventDefault();
 
     if (!formData.username || !formData.email || !formData.password) {
-      return dispatch(loginFailure("All fields are required"));
+      return toast.error("All fields are required");
     }
 
     try {
       dispatch(loginStart());
 
-      // convert to FormData
       const data = new FormData();
       data.append("username", formData.username);
       data.append("email", formData.email);
@@ -57,12 +53,14 @@ const Register = () => {
         data.append("avatar", formData.avatar);
       }
 
-      const res = await registerUser(data);
+      await registerUser(data);
 
-      dispatch(loginSuccess(res.data));
+      toast.success("Account created successfully 🚀");
+
       navigate("/login");
     } catch (err) {
-      dispatch(loginFailure(err.response?.data?.message || "Register failed"));
+      toast.error(err.message); // ✅ clean backend message
+      dispatch(loginFailure(null));
     }
   };
 

@@ -135,9 +135,6 @@ const RegisterForm = ({
             onChange={handleChange}
             className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
           />
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-          )}
         </div>
 
         <motion.button

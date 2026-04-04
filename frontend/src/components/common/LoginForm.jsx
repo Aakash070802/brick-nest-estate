@@ -57,8 +57,6 @@ const LoginForm = ({
           Sign up
         </Link>
       </p>
-
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 };

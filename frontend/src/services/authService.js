@@ -2,20 +2,33 @@ import api from "./api";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import { app } from "../firebase";
 
+const handleError = (error) => {
+  const message =
+    error?.response?.data?.message || // -> backend message
+    error?.message ||
+    "Something went wrong";
+
+  throw { message };
+};
+
 // LOGIN
 export const loginUser = async (formData) => {
-  const res = await api.post("/auth/login", formData);
-  return res.data;
+  try {
+    const res = await api.post("/auth/login", formData);
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
 };
 
 // REGISTER
 export const registerUser = async (formData) => {
-  const res = await api.post("/auth/register", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return res.data;
+  try {
+    const res = await api.post("/auth/register", formData);
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
 };
 
 // GOOGLE LOGIN
@@ -34,7 +47,6 @@ export const loginWithGoogle = async () => {
 
     return res.data;
   } catch (error) {
-    // normalize error
     throw {
       message:
         error.code === "auth/popup-closed-by-user"
