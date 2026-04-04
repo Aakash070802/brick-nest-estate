@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import loginBgImg from "../assets/login-bg.png";
+import loginBgImg from "../../assets/login-bg.png";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -9,7 +9,6 @@ import {
   loginSuccess,
   loginFailure,
 } from "../../redux/features/userSlice";
-import { loginWithGoogle } from "../components/OAuth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -50,20 +49,20 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      dispatch(loginStart());
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     dispatch(loginStart());
 
-      const data = await loginWithGoogle();
+  //     const data = await loginWithGoogle();
 
-      dispatch(loginSuccess(data));
-      navigate("/");
-    } catch (err) {
-      dispatch(
-        loginFailure(err.response?.data?.message || "Google login failed"),
-      );
-    }
-  };
+  //     dispatch(loginSuccess(data));
+  //     navigate("/");
+  //   } catch (err) {
+  //     dispatch(
+  //       loginFailure(err.response?.data?.message || "Google login failed"),
+  //     );
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-(--color-bg)">
@@ -115,7 +114,6 @@ const Login = () => {
           <div className="flex justify-center w-full">
             <motion.button
               disabled={loading}
-              onClick={handleGoogleLogin}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               className="flex items-center justify-center gap-3 w-full max-w-xs px-6 py-3 

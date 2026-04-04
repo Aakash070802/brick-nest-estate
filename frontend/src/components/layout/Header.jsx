@@ -1,10 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { motion } from "framer-motion";
 import darkLogo from "../../assets/logo-dark.png";
 import lightLogo from "../../assets/logo-light.png";
+import { useTheme } from "../../hooks/useTheme";
 
-const Header = ({ theme, toggleTheme, isSignIn }) => {
+const Header = () => {
+  const location = useLocation();
+  const isSignIn = location.pathname === "/login";
+
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <motion.header
       initial={{ y: -60, opacity: 0 }}
