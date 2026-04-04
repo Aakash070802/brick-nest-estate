@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
 
@@ -33,5 +34,6 @@ import listingRouter from "./routes/listing.route.js";
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/listing", listingRouter);
+app.use(errorMiddleware);
 
 export { app };

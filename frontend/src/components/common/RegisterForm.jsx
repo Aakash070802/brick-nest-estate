@@ -154,8 +154,6 @@ const RegisterForm = ({
           Sign in
         </Link>
       </p>
-
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </motion.div>
   );
 };

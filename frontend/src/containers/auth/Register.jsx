@@ -55,11 +55,11 @@ const Register = () => {
 
       await registerUser(data);
 
-      toast.success("Account created successfully 🚀");
+      toast.success("Account created successfully");
 
       navigate("/login");
     } catch (err) {
-      toast.error(err.message); // ✅ clean backend message
+      toast.error(err.message); // clean backend message
       dispatch(loginFailure(null));
     }
   };

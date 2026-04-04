@@ -8,7 +8,7 @@ const handleError = (error) => {
     error?.message ||
     "Something went wrong";
 
-  throw { message };
+  throw new Error(message);
 };
 
 // LOGIN
@@ -17,6 +17,7 @@ export const loginUser = async (formData) => {
     const res = await api.post("/auth/login", formData);
     return res.data;
   } catch (error) {
+    console.log("BACKEND ERROR:", error.response?.data);
     handleError(error);
   }
 };
@@ -27,6 +28,7 @@ export const registerUser = async (formData) => {
     const res = await api.post("/auth/register", formData);
     return res.data;
   } catch (error) {
+    console.log("BACKEND ERROR:", error.response?.data);
     handleError(error);
   }
 };
@@ -42,7 +44,6 @@ export const loginWithGoogle = async () => {
     const res = await api.post("/auth/google", {
       name: result.user.displayName,
       email: result.user.email,
-      photo: result.user.photoURL,
     });
 
     return res.data;

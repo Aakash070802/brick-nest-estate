@@ -47,6 +47,7 @@ const Login = () => {
       const data = await loginUser(formData);
 
       dispatch(loginSuccess(data));
+      toast.success("Welcome");
       navigate("/");
     } catch (err) {
       toast.error(err.message);

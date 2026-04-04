@@ -149,6 +149,7 @@ const loginController = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
+    sameSite: "strict",
   };
 
   const loggedInUser = sanitizeUser(user);
@@ -184,6 +185,7 @@ const googleController = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
+    sameSite: "strict",
   };
 
   if (user) {
@@ -206,7 +208,8 @@ const googleController = async (req, res) => {
     username: name.replace(/\s+/g, "").toLowerCase(),
     email,
     password: randomPassword,
-    avatar: photo,
+    avatar: "",
+    avatarPublicId: "",
   });
 
   const { accessToken, refreshToken } =
@@ -289,6 +292,7 @@ const refreshTokenController = async (req, res) => {
     const options = {
       httpOnly: true,
       secure: config.NODE_ENV === "production",
+      sameSite: "strict",
     };
 
     return res
@@ -432,6 +436,7 @@ const verifyRestoreUser = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
+    sameSite: "strict",
   };
 
   return res
