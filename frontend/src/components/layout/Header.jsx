@@ -1,21 +1,16 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { motion } from "framer-motion";
-import darkLogo from "../assets/logo-dark.png";
-import lightLogo from "../assets/logo-light.png";
-import { useTheme } from "../hooks/useTheme";
+import darkLogo from "../../assets/logo-dark.png";
+import lightLogo from "../../assets/logo-light.png";
 
-const Header = () => {
-  const location = useLocation();
-  const isSignIn = location.pathname === "/login";
-  const { theme, toggleTheme } = useTheme();
-
+const Header = ({ theme, toggleTheme, isSignIn }) => {
   return (
     <motion.header
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="bg-transparent z-50 "
+      className="bg-transparent z-50"
     >
       <div className="flex justify-between items-center max-w-6xl mx-auto p-3 py-4">
         {/* LEFT NAV */}
@@ -26,9 +21,7 @@ const Header = () => {
           variants={{
             hidden: {},
             visible: {
-              transition: {
-                staggerChildren: 0.1,
-              },
+              transition: { staggerChildren: 0.1 },
             },
           }}
         >
@@ -66,7 +59,6 @@ const Header = () => {
 
         {/* CENTER */}
         <div className="flex items-center gap-4">
-          {/* LOGO */}
           <Link to="/">
             <motion.img
               src={theme === "light" ? darkLogo : lightLogo}
@@ -78,12 +70,11 @@ const Header = () => {
             />
           </Link>
 
-          {/* THEME TOGGLE */}
           <motion.button
             onClick={toggleTheme}
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.1 }}
-            className="p-2 rounded-full bg-(--color-card) flex items-center justify-center cursor-pointer"
+            className="p-2 rounded-full bg-(--color-card)"
           >
             {theme === "dark" ? (
               <FaSun size={16} className="text-yellow-400" />
@@ -93,9 +84,8 @@ const Header = () => {
           </motion.button>
         </div>
 
-        {/* AUTH BUTTONS */}
+        {/* AUTH */}
         <div className="relative flex items-center w-40">
-          {/* Sliding Background */}
           <motion.div
             layout
             transition={{ type: "spring", stiffness: 300, damping: 25 }}

@@ -1,6 +1,6 @@
 import { FaMoon } from "react-icons/fa";
 import { IoMdSunny } from "react-icons/io";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../../hooks/useTheme";
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
