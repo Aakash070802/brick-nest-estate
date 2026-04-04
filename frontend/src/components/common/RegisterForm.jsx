@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const RegisterForm = ({
   formData,
@@ -11,9 +11,46 @@ const RegisterForm = ({
 }) => {
   const fileRef = useRef(null);
 
+  const [errors, setErrors] = useState({});
+
   const previewUrl = formData.avatar
     ? URL.createObjectURL(formData.avatar)
     : "/default-user.png";
+
+  // 🔥 VALIDATION LOGIC
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.username) {
+      newErrors.username = "Username is required";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (!/^(?=.*[A-Z])(?=.*[\W_]).{6,}$/.test(formData.password)) {
+      newErrors.password =
+        "Min 6 chars, 1 uppercase, 1 special character required";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // 🔥 WRAP SUBMIT
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    handleSubmit(e); // pass to container
+  };
 
   return (
     <motion.div
@@ -27,11 +64,11 @@ const RegisterForm = ({
       </h2>
       <p className="text-(--color-text-muted) mb-6">Sign up to get started</p>
 
-      {/* 🔥 AVATAR PREVIEW */}
+      {/* AVATAR */}
       <div className="flex justify-center mb-6">
         <motion.div
           whileHover={{ scale: 1.05 }}
-          className="relative w-24 h-24 rounded-full overflow-hidden cursor-pointer border-2 border-(--color-border)"
+          className="w-24 h-24 rounded-full overflow-hidden cursor-pointer border-2 border-(--color-border)"
           onClick={() => fileRef.current.click()}
         >
           <img
@@ -41,7 +78,6 @@ const RegisterForm = ({
           />
         </motion.div>
 
-        {/* hidden input */}
         <input
           type="file"
           id="avatar"
@@ -52,33 +88,57 @@ const RegisterForm = ({
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Username"
-          id="username"
-          value={formData.username}
-          onChange={handleChange}
-          className="p-3 rounded-xl bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-(--color-primary)"
-        />
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+        {/* USERNAME */}
+        <div>
+          <label className="text-sm text-(--color-text)">
+            Username <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="username"
+            value={formData.username}
+            onChange={handleChange}
+            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+          />
+          {errors.username && (
+            <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+          )}
+        </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          id="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="p-3 rounded-xl bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-(--color-primary)"
-        />
+        {/* EMAIL */}
+        <div>
+          <label className="text-sm text-(--color-text)">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+          />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          id="password"
-          value={formData.password}
-          onChange={handleChange}
-          className="p-3 rounded-xl bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-(--color-primary)"
-        />
+        {/* PASSWORD */}
+        <div>
+          <label className="text-sm text-(--color-text)">
+            Password <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={formData.password}
+            onChange={handleChange}
+            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+          />
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
+        </div>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
