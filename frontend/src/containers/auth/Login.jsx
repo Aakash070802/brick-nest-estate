@@ -8,7 +8,7 @@ import {
   loginStart,
   loginSuccess,
   loginFailure,
-} from "../redux/features/userSlice";
+} from "../../redux/features/userSlice";
 import { loginWithGoogle } from "../components/OAuth";
 
 const Login = () => {
