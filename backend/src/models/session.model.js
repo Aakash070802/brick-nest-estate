@@ -27,5 +27,7 @@ const sessionSchema = new Schema(
   },
   { timestamps: true }
 );
+sessionSchema.index({ userId: 1 });
+sessionSchema.index({ isValid: 1 });
 
 export const Session = model("Session", sessionSchema);

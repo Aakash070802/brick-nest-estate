@@ -11,6 +11,7 @@ import { generateOtp, getOtpHtml } from "../utils/otp.js";
 import { sendEmail } from "../services/email.service.js";
 import bcrypt from "bcryptjs";
 import { createSession } from "../utils/session.js";
+import { logActivity } from "../utils/logger.js";
 
 /**
  * @function generateAccessTokenAndRefreshToken
@@ -98,6 +99,7 @@ const registerController = async (req, res) => {
   }
 
   const safeUser = await User.findById(createdUser?._id);
+  await logActivity(req, createdUser._id, "REGISTER");
 
   return res
     .status(201)
@@ -154,6 +156,7 @@ const loginController = async (req, res) => {
   };
 
   const loggedInUser = sanitizeUser(user);
+  await logActivity(req, user._id, "LOGIN_SUCCESS");
 
   return res
     .status(200)
@@ -196,6 +199,7 @@ const googleController = async (req, res) => {
     await createSession(user, req, refreshToken);
 
     const safeUser = sanitizeUser(user);
+    await logActivity(req, user._id, "GOOGLE_LOGIN");
 
     return res
       .status(200)
@@ -221,6 +225,7 @@ const googleController = async (req, res) => {
   await createSession(newUser, req, refreshToken);
 
   const safeNewUser = sanitizeUser(newUser);
+  await logActivity(req, newUser._id, "GOOGLE_LOGIN");
 
   return res
     .status(201)
@@ -245,35 +250,45 @@ const logoutController = async (req, res) => {
     );
   }
 
-  // New Session Auth based
-  const sessions = await Session.find({ isValid: true });
+  try {
+    const decoded = jwt.verify(incomingRefreshToken, config.REFRESH_TOKEN_KEY);
 
-  let matchedSession = null;
+    const sessions = await Session.find({
+      userId: decoded.id,
+      isValid: true,
+    });
 
-  for (const session of sessions) {
-    const isMatch = await bcrypt.compare(
-      incomingRefreshToken,
-      session.refreshToken
-    );
+    let matchedSession = null;
 
-    if (isMatch) {
-      matchedSession = session;
-      break;
+    for (const session of sessions) {
+      const isMatch = await bcrypt.compare(
+        incomingRefreshToken,
+        session.refreshToken
+      );
+
+      if (isMatch) {
+        matchedSession = session;
+        break;
+      }
     }
+
+    if (!matchedSession) {
+      throw new ApiError(401, "Invalid session or already logged out");
+    }
+
+    matchedSession.isValid = false;
+    await matchedSession.save();
+
+    await logActivity(req, decoded.id, "LOGOUT");
+
+    return res
+      .status(200)
+      .clearCookie("accessToken")
+      .clearCookie("refreshToken")
+      .json(new ApiResponse(200, "User Logged out successfully"));
+  } catch (error) {
+    throw new ApiError(401, "Invalid Token");
   }
-
-  if (!matchedSession) {
-    throw new ApiError(401, "Invalid session or already logged out");
-  }
-
-  matchedSession.isValid = false;
-  await matchedSession.save();
-
-  return res
-    .status(200)
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
-    .json(new ApiResponse(200, "User Logged out successfully"));
 };
 
 /**
@@ -300,6 +315,8 @@ const logoutAllController = async (req, res) => {
     );
 
     await Session.updateMany({ userId: decodedToken.id }, { isValid: false });
+
+    await logActivity(req, decoded.id, "LOGOUT_ALL");
 
     return res
       .status(200)
@@ -340,9 +357,6 @@ const refreshTokenController = async (req, res) => {
       throw new ApiError(403, "Account is deactivated");
     }
 
-    if (incomingRefreshToken !== user?.refreshToken) {
-      throw new ApiError(401, "Refresh Token is expired or used");
-    }
     // New Session Auth based
     const sessions = await Session.find({
       userId: user?._id,
@@ -370,9 +384,8 @@ const refreshTokenController = async (req, res) => {
     matchedSession.isValid = false;
     await matchedSession.save();
 
-    const { accessToken, refreshToken } = generateAccessTokenAndRefreshToken(
-      user?._id
-    );
+    const { accessToken, refreshToken } =
+      await generateAccessTokenAndRefreshToken(user?._id);
 
     await createSession(user, req, refreshToken);
 
@@ -381,6 +394,8 @@ const refreshTokenController = async (req, res) => {
       secure: config.NODE_ENV === "production",
       sameSite: "strict",
     };
+
+    await logActivity(req, user._id, "TOKEN_REFRESH");
 
     return res
       .status(200)
