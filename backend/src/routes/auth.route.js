@@ -3,6 +3,7 @@ import { upload } from "../middleware/multer.middleware.js";
 import {
   googleController,
   loginController,
+  logoutAllController,
   logoutController,
   refreshTokenController,
   registerController,
@@ -33,6 +34,12 @@ router.route("/google").post(googleController);
  * @GET /api/auth/logout
  */
 router.route("/logout").get(authMiddleware, logoutController);
+
+/**
+ * @private authMiddleware
+ * @GET /api/auth/logout-all
+ */
+router.route("/logout-all").get(authMiddleware, logoutAllController);
 
 /**
  * @POST /api/auth/refresh-token

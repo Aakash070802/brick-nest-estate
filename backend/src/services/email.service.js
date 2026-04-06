@@ -1,6 +1,18 @@
 import { config } from "../config/config.js";
 import nodemailer from "nodemailer";
+import { google } from "googleapis";
 
+const oAuth2Client = new google.auth.OAuth2(
+  config.GOOGLE_CLIENT_ID,
+  config.GOOGLE_CLIENT_SECRET,
+  "https://developers.google.com/oauthplayground"
+);
+
+oAuth2Client.setCredentials({
+  refresh_token: config.GOOGLE_REFRESH_TOKEN,
+});
+
+const accessToken = await oAuth2Client.getAccessToken();
 /**
  * @function transporter
  * @description Creates a nodemailer transporter object using the email configuration from the config file
@@ -14,6 +26,7 @@ const transporter = nodemailer.createTransport({
     clientId: config.GOOGLE_CLIENT_ID,
     clientSecret: config.GOOGLE_CLIENT_SECRET,
     refreshToken: config.GOOGLE_REFRESH_TOKEN,
+    accessToken: accessToken.token,
   },
 });
 

@@ -1,6 +1,7 @@
 import { config } from "../config/config.js";
 import { User } from "../models/user.model.js";
 import { Otp } from "../models/otp.model.js";
+import { Session } from "../models/session.model.js";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -9,6 +10,7 @@ import crypto from "crypto";
 import { generateOtp, getOtpHtml } from "../utils/otp.js";
 import { sendEmail } from "../services/email.service.js";
 import bcrypt from "bcryptjs";
+import { createSession } from "../utils/session.js";
 
 /**
  * @function generateAccessTokenAndRefreshToken
@@ -20,9 +22,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
     const user = await User.findById(userId);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
@@ -146,6 +145,8 @@ const loginController = async (req, res) => {
   const { accessToken, refreshToken } =
     await generateAccessTokenAndRefreshToken(user._id);
 
+  await createSession(user, req, refreshToken);
+
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
@@ -170,7 +171,7 @@ const loginController = async (req, res) => {
  * @POST /api/auth/google
  */
 const googleController = async (req, res) => {
-  const { email, name, photo } = req.body;
+  const { email, name } = req.body;
 
   if (!email) {
     throw new ApiError(400, "Google auth failed");
@@ -191,6 +192,8 @@ const googleController = async (req, res) => {
   if (user) {
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshToken(user._id);
+
+    await createSession(user, req, refreshToken);
 
     const safeUser = sanitizeUser(user);
 
@@ -215,6 +218,8 @@ const googleController = async (req, res) => {
   const { accessToken, refreshToken } =
     await generateAccessTokenAndRefreshToken(newUser._id);
 
+  await createSession(newUser, req, refreshToken);
+
   const safeNewUser = sanitizeUser(newUser);
 
   return res
@@ -231,26 +236,79 @@ const googleController = async (req, res) => {
  * @GET /api/auth/logout
  */
 const logoutController = async (req, res) => {
-  const refreshToken = req.cookies?.refreshToken;
+  const incomingRefreshToken = req.cookies?.refreshToken;
 
-  if (!refreshToken) {
+  if (!incomingRefreshToken) {
     throw new ApiError(
       401,
       "Unauthorized Access, token is required for logout!"
     );
   }
 
-  const user = await User.findOne({ refreshToken });
+  // New Session Auth based
+  const sessions = await Session.find({ isValid: true });
 
-  if (user) {
-    user.refreshToken = "";
-    await user.save({ validateBeforeSave: false });
+  let matchedSession = null;
+
+  for (const session of sessions) {
+    const isMatch = await bcrypt.compare(
+      incomingRefreshToken,
+      session.refreshToken
+    );
+
+    if (isMatch) {
+      matchedSession = session;
+      break;
+    }
   }
+
+  if (!matchedSession) {
+    throw new ApiError(401, "Invalid session or already logged out");
+  }
+
+  matchedSession.isValid = false;
+  await matchedSession.save();
+
   return res
     .status(200)
     .clearCookie("accessToken")
     .clearCookie("refreshToken")
     .json(new ApiResponse(200, "User Logged out successfully"));
+};
+
+/**
+ * @new SESSION AUTH
+ * @function logoutAllController
+ * @description Handles user logout from all devices.
+ * @body {string} refreshToken - The refresh token of the user (required in cookies)
+ * @GET /api/auth/logout
+ */
+const logoutAllController = async (req, res) => {
+  const incomingRefreshToken = req.cookies?.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(
+      401,
+      "Unauthorized Access, token is required for logout!"
+    );
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      config.REFRESH_TOKEN_KEY
+    );
+
+    await Session.updateMany({ userId: decodedToken.id }, { isValid: false });
+
+    return res
+      .status(200)
+      .clearCookie("accessToken")
+      .clearCookie("refreshToken")
+      .json(new ApiResponse(200, "Logged Out from All Devices."));
+  } catch (error) {
+    throw new ApiError(401, "Invalid token");
+  }
 };
 
 /**
@@ -285,9 +343,38 @@ const refreshTokenController = async (req, res) => {
     if (incomingRefreshToken !== user?.refreshToken) {
       throw new ApiError(401, "Refresh Token is expired or used");
     }
+    // New Session Auth based
+    const sessions = await Session.find({
+      userId: user?._id,
+      isValid: true,
+    });
 
-    const { accessToken, refreshToken } =
-      await generateAccessTokenAndRefreshToken(user._id);
+    let matchedSession = null;
+
+    for (const session of sessions) {
+      const isMatch = await bcrypt.compare(
+        incomingRefreshToken,
+        session.refreshToken
+      );
+
+      if (isMatch) {
+        matchedSession = session;
+        break;
+      }
+    }
+
+    if (!matchedSession) {
+      throw new ApiError(401, "Invalid or reused refresh token");
+    }
+
+    matchedSession.isValid = false;
+    await matchedSession.save();
+
+    const { accessToken, refreshToken } = generateAccessTokenAndRefreshToken(
+      user?._id
+    );
+
+    await createSession(user, req, refreshToken);
 
     const options = {
       httpOnly: true,
@@ -450,6 +537,7 @@ export {
   loginController,
   googleController,
   logoutController,
+  logoutAllController,
   refreshTokenController,
   requestRestoreAccount,
   verifyRestoreUser,
