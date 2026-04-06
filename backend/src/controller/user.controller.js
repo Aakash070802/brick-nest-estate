@@ -1,3 +1,4 @@
+import { Session } from "../models/session.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -5,6 +6,7 @@ import {
   deleteFromCloudinary,
   uploadOnCloudinary,
 } from "../utils/cloudinary.js";
+import { logActivity } from "../utils/logger.js";
 
 /**
  * @private getUser
@@ -160,8 +162,10 @@ const deleteUser = async (req, res) => {
   }
 
   user.isActive = false;
-  user.refreshToken = "";
-  await user.save({ validateBeforeSave: false });
+  await user.save();
+
+  await Session.deleteMany({ userId: user?._id });
+  await logActivity(req, user._id, "DELETED_USER");
 
   return res
     .status(200)

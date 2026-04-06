@@ -22,7 +22,6 @@ const otpSchema = new Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 },
     },
 
     purpose: {
@@ -34,6 +33,11 @@ const otpSchema = new Schema(
     attempts: {
       type: Number,
       default: 0,
+    },
+
+    isValid: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }

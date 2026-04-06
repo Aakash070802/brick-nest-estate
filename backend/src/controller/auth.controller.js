@@ -428,22 +428,26 @@ const requestRestoreAccount = async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (!user || user?.isActive) {
+  if (!user || user.isActive) {
     throw new ApiError(400, "Invalid request");
   }
 
-  // Rate limiting 1 OTP/sec
+  // RATE LIMIT (1 min)
   const recentOtp = await Otp.findOne({
     email,
     purpose: "restore-account",
     createdAt: { $gt: new Date(Date.now() - 60 * 1000) },
+    isValid: true,
   });
 
   if (recentOtp) {
     throw new ApiError(429, "Please wait before requesting another OTP");
   }
+
+  // MAX 5 OTP/hour
   const count = await Otp.countDocuments({
     email,
+    purpose: "restore-account",
     createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) },
   });
 
@@ -451,20 +455,23 @@ const requestRestoreAccount = async (req, res) => {
     throw new ApiError(429, "Too many OTP requests. Try later.");
   }
 
-  // DELETE old OTPs
-  await Otp.deleteMany({ email, purpose: "restore-account" });
+  // SOFT INVALIDATE OLD OTPs
+  await Otp.updateMany(
+    { email, purpose: "restore-account", isValid: true },
+    { $set: { isValid: false } }
+  );
 
   const otp = generateOtp();
   const html = getOtpHtml(otp);
-
   const otpHash = await bcrypt.hash(otp, 10);
 
   await Otp.create({
     email,
-    userId: user?._id,
+    userId: user._id,
     otpHash,
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     purpose: "restore-account",
+    isValid: true,
   });
 
   await sendEmail(email, "OTP verification", `Your OTP code is: ${otp}`, html);
@@ -489,21 +496,24 @@ const verifyRestoreUser = async (req, res) => {
   const record = await Otp.findOne({
     email,
     purpose: "restore-account",
+    isValid: true,
   }).sort({ createdAt: -1 });
 
   if (!record) {
     throw new ApiError(400, "OTP not found");
   }
 
-  // EXPIRY CHECK
+  // EXPIRED
   if (record.expiresAt < new Date()) {
-    await Otp.deleteOne({ _id: record._id });
+    record.isValid = false;
+    await record.save();
     throw new ApiError(400, "OTP expired");
   }
 
-  // ATTEMPT LIMIT
+  // TOO MANY ATTEMPTS
   if (record.attempts >= 5) {
-    await Otp.deleteOne({ _id: record._id });
+    record.isValid = false;
+    await record.save();
     throw new ApiError(429, "Too many attempts");
   }
 
@@ -514,6 +524,10 @@ const verifyRestoreUser = async (req, res) => {
     await record.save();
     throw new ApiError(400, "Invalid OTP");
   }
+
+  // VALID OTP → invalidate it immediately
+  record.isValid = false;
+  await record.save();
 
   const user = await User.findById(record.userId);
 
@@ -529,17 +543,18 @@ const verifyRestoreUser = async (req, res) => {
   user.isActive = true;
   await user.save({ validateBeforeSave: false });
 
-  // DELETE OTP
-  await Otp.deleteOne({ _id: record._id });
-
   const { accessToken, refreshToken } =
     await generateAccessTokenAndRefreshToken(user._id);
+
+  await createSession(user, req, refreshToken);
 
   const options = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
     sameSite: "strict",
   };
+
+  await logActivity(req, user._id, "RESTORE_LOGIN_SUCCESS");
 
   return res
     .cookie("accessToken", accessToken, options)
