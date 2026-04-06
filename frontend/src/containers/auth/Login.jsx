@@ -2,7 +2,15 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import loginBgImg from "../../assets/login-bg.png";
-import { loginUser, loginWithGoogle } from "../../services/authService";
+import {
+  loginUser,
+  loginWithGoogle,
+  requestRestore,
+  verifyRestore,
+  forgotPasswordRequest,
+  verifyForgotOtp,
+  resetPassword,
+} from "../../services/authService";
 import {
   loginStart,
   loginSuccess,
@@ -11,7 +19,6 @@ import {
 import LoginForm from "../../components/common/LoginForm";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { requestRestore, verifyRestore } from "../../services/authService";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +31,13 @@ const Login = () => {
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [step, setStep] = useState(1);
   const [otp, setOtp] = useState("");
+
+  // Forgot Password State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -111,6 +125,41 @@ const Login = () => {
     }
   };
 
+  const handleForgotRequest = async () => {
+    try {
+      await forgotPasswordRequest(forgotEmail);
+      toast.success("OTP sent");
+      setForgotStep(2);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleVerifyForgotOtp = async () => {
+    try {
+      await verifyForgotOtp(forgotEmail, forgotOtp);
+      toast.success("OTP verified");
+      setForgotStep(3);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      await resetPassword(forgotEmail, newPassword);
+      toast.success("Password updated");
+
+      setShowForgotModal(false);
+      setForgotStep(1);
+
+      // optional: auto fill email in login
+      setFormData((prev) => ({ ...prev, email: forgotEmail }));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-(--color-bg)">
@@ -127,6 +176,7 @@ const Login = () => {
             loading={loading}
             googleLoading={googleLoading}
             error={error}
+            onForgotPassword={() => setShowForgotModal(true)}
           />
 
           <div className="w-1/2 hidden md:block">
@@ -186,6 +236,89 @@ const Login = () => {
 
             <button
               onClick={() => setShowRestoreModal(false)}
+              className="mt-3 text-sm text-red-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-(--color-surface) p-6 rounded-xl w-96">
+            <h2 className="text-xl font-bold mb-4 text-(--color-text)">
+              Forgot Password
+            </h2>
+
+            {/* STEP 1 — EMAIL */}
+            {forgotStep === 1 && (
+              <>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                />
+
+                <button
+                  onClick={handleForgotRequest}
+                  className="mt-4 w-full p-3 rounded-xl text-white"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
+                  Send OTP
+                </button>
+              </>
+            )}
+
+            {/* STEP 2 — OTP */}
+            {forgotStep === 2 && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={forgotOtp}
+                  onChange={(e) => setForgotOtp(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                />
+
+                <button
+                  onClick={handleVerifyForgotOtp}
+                  className="mt-4 w-full p-3 rounded-xl text-white"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
+                  Verify OTP
+                </button>
+              </>
+            )}
+
+            {/* STEP 3 — NEW PASSWORD */}
+            {forgotStep === 3 && (
+              <>
+                <input
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                />
+
+                <button
+                  onClick={handleResetPassword}
+                  className="mt-4 w-full p-3 rounded-xl text-white"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
+                  Reset Password
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => {
+                setShowForgotModal(false);
+                setForgotStep(1);
+              }}
               className="mt-3 text-sm text-red-400"
             >
               Cancel

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
+  forgotPasswordController,
   googleController,
   loginController,
   logoutAllController,
@@ -8,6 +9,8 @@ import {
   refreshTokenController,
   registerController,
   requestRestoreAccount,
+  resetPasswordController,
+  verifyForgotPasswordController,
   verifyRestoreUser,
 } from "../controller/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
@@ -50,8 +53,25 @@ router.route("/refresh-token").post(refreshTokenController);
  * @POST /api/auth/request-restore-account
  */
 router.route("/request-restore-account").post(requestRestoreAccount);
+
 /**
  * @POST /api/auth/verify-restore-account
  */
 router.route("/verify-restore-account").post(verifyRestoreUser);
+
+/**
+ * @POST /api/auth/forgot-password
+ */
+router.route("/forgot-password").post(forgotPasswordController);
+
+/**
+ * @POST /api/auth/verify-forgot-password
+ */
+router.route("/verify-forgot-password").post(verifyForgotPasswordController);
+
+/**
+ * @POST /api/auth/reset-password
+ */
+router.route("/reset-password").post(resetPasswordController);
+
 export default router;

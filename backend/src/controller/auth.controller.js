@@ -564,6 +564,148 @@ const verifyRestoreUser = async (req, res) => {
     );
 };
 
+/**
+ * @function forgotPasswordController
+ * @description Handles {email} input, generates OTP and sends to user's email for password reset
+ * @body {string} email - The email of the user requesting password reset
+ * @POST /api/auth/forgot-password
+ */
+const forgotPasswordController = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, "ACCOUNT_DEACTIVATED");
+  }
+
+  //  RATE LIMIT
+  const recentOtp = await Otp.findOne({
+    email,
+    purpose: "forgot-password",
+    createdAt: { $gt: new Date(Date.now() - 60 * 1000) },
+    isValid: true,
+  });
+
+  if (recentOtp) {
+    throw new ApiError(429, "Please wait before requesting another OTP");
+  }
+
+  // MAX 5/hour
+  const count = await Otp.countDocuments({
+    email,
+    purpose: "forgot-password",
+    createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) },
+  });
+
+  if (count >= 5) {
+    throw new ApiError(429, "Too many requests. Try later.");
+  }
+
+  // Invalidate old OTPs
+  await Otp.updateMany(
+    { email, purpose: "forgot-password", isValid: true },
+    { $set: { isValid: false } }
+  );
+
+  const otp = generateOtp();
+  const html = getOtpHtml(otp);
+  const otpHash = await bcrypt.hash(otp, 10);
+
+  await Otp.create({
+    email,
+    userId: user._id,
+    otpHash,
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    purpose: "forgot-password",
+    isValid: true,
+  });
+
+  await sendEmail(email, "Reset Password OTP", `OTP: ${otp}`, html);
+
+  return res.json(new ApiResponse(200, "OTP sent"));
+};
+
+/**
+ * @function verifyForgotPasswordController
+ * @description Handles OTP verification for forgot password flow
+ * @body {string} email - The email of the user requesting password reset
+ * @body {string} otp - The OTP provided by the user for verification
+ * @POST /api/auth/verify-forgot-password
+ */
+const verifyForgotPasswordController = async (req, res) => {
+  const { email, otp } = req.body;
+
+  const record = await Otp.findOne({
+    email,
+    purpose: "forgot-password",
+    isValid: true,
+  }).sort({ createdAt: -1 });
+
+  if (!record) {
+    throw new ApiError(400, "OTP not found");
+  }
+
+  if (record.expiresAt < new Date()) {
+    record.isValid = false;
+    await record.save();
+    throw new ApiError(400, "OTP expired");
+  }
+
+  if (record.attempts >= 5) {
+    record.isValid = false;
+    await record.save();
+    throw new ApiError(429, "Too many attempts");
+  }
+
+  const isMatch = await bcrypt.compare(otp, record.otpHash);
+
+  if (!isMatch) {
+    record.attempts += 1;
+    await record.save();
+    throw new ApiError(400, "Invalid OTP");
+  }
+
+  record.isValid = false;
+  await record.save();
+
+  return res.json(new ApiResponse(200, "OTP verified"));
+};
+
+/**
+ * @function resetPasswordController
+ * @description Handles password reset functionality
+ * @body {string} email - The email of the user requesting password reset
+ * @body {string} otp - The OTP provided by the user for verification
+ * @body {string} newPassword - The new password provided by the user
+ * @POST /api/auth/reset-password
+ */
+const resetPasswordController = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!newPassword) {
+    throw new ApiError(400, "New password required");
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  await Session.deleteMany({ userId: user?._id });
+  await logActivity(req, user._id, "CHANGED_PASSWORD");
+
+  return res.json(new ApiResponse(200, "Password reset successful"));
+};
+
 export {
   registerController,
   loginController,
@@ -573,4 +715,7 @@ export {
   refreshTokenController,
   requestRestoreAccount,
   verifyRestoreUser,
+  forgotPasswordController,
+  verifyForgotPasswordController,
+  resetPasswordController,
 };

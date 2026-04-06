@@ -12,6 +12,8 @@ const LoginForm = ({
   handleGoogleLogin,
   loading,
   googleLoading,
+  error,
+  onForgotPassword,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   return (
@@ -57,7 +59,10 @@ const LoginForm = ({
           {loading ? "Loading..." : "Login"}
         </motion.button>
       </form>
-      <p className="mt-2 text-center text-sm text-blue-500 cursor-pointer">
+      <p
+        onClick={onForgotPassword}
+        className="mt-2 text-center text-sm text-blue-500 cursor-pointer"
+      >
         Forgot Password?
       </p>
 
