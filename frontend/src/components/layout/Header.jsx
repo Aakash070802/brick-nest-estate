@@ -5,6 +5,7 @@ import { useState } from "react";
 import darkLogo from "../../assets/logo-dark.png";
 import lightLogo from "../../assets/logo-light.png";
 import { useTheme } from "../../hooks/useTheme";
+import { useSelector } from "react-redux";
 
 const Header = () => {
   const location = useLocation();
@@ -14,6 +15,7 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = ["buy", "rent", "sell"];
+  const { currentUser } = useSelector((state) => state.user);
 
   return (
     <motion.header
@@ -77,37 +79,59 @@ const Header = () => {
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-3">
           {/* AUTH (DESKTOP) */}
-          <div className="hidden md:flex relative items-center w-44 lg:w-48">
-            <motion.div
-              layout
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="absolute w-1/2 h-9 rounded-full"
-              animate={{
-                x: isSignIn ? "100%" : "0%",
-              }}
-              style={{
-                background: "var(--gradient-primary)",
-              }}
-            />
+          {!currentUser ? (
+            <div className="hidden md:flex relative items-center w-44 lg:w-48">
+              <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="absolute w-1/2 h-9 rounded-full"
+                animate={{
+                  x: isSignIn ? "100%" : "0%",
+                }}
+                style={{
+                  background: "var(--gradient-primary)",
+                }}
+              />
 
-            <Link
-              to="/register"
-              className={`w-1/2 text-center text-sm font-medium z-10 leading-9 ${
-                !isSignIn ? "text-white" : "text-(--color-text-muted)"
-              }`}
-            >
-              Sign up
-            </Link>
+              <Link
+                to="/register"
+                className={`w-1/2 text-center text-sm font-medium z-10 leading-9 ${
+                  !isSignIn ? "text-white" : "text-(--color-text-muted)"
+                }`}
+              >
+                Sign up
+              </Link>
 
-            <Link
-              to="/login"
-              className={`w-1/2 text-center text-sm font-medium z-10 leading-9 ${
-                isSignIn ? "text-white" : "text-(--color-text-muted)"
-              }`}
-            >
-              Sign in
+              <Link
+                to="/login"
+                className={`w-1/2 text-center text-sm font-medium z-10 leading-9 ${
+                  isSignIn ? "text-white" : "text-(--color-text-muted)"
+                }`}
+              >
+                Sign in
+              </Link>
+            </div>
+          ) : (
+            <Link to="/profile" className="hidden md:block">
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                {/* GRADIENT RING */}
+                <div className="p-0.5 rounded-full bg-linear-to-r from-indigo-500 to-purple-500">
+                  <img
+                    src={currentUser.data.avatar || "/default-user.png"}
+                    alt="avatar"
+                    className="w-10 h-10 rounded-full object-cover bg-(--color-card)"
+                  />
+                </div>
+
+                {/* ONLINE DOT (optional but sexy UI) */}
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-black rounded-full" />
+              </motion.div>
             </Link>
-          </div>
+          )}
 
           {/* MOBILE MENU BUTTON */}
           <button
@@ -169,23 +193,35 @@ const Header = () => {
                 </Link>
               </div>
 
-              {/* AUTH SECTION */}
+              {/* AUTH SECTION (MOBILE) */}
               <div className="mt-auto pt-8 flex flex-col gap-4">
-                <Link
-                  to="/register"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium"
-                >
-                  Sign up
-                </Link>
+                {!currentUser ? (
+                  <>
+                    <Link
+                      to="/register"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full text-center py-2 rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 text-white font-medium"
+                    >
+                      Sign up
+                    </Link>
 
-                <Link
-                  to="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg border border-(--color-text-muted) font-medium text-(--color-text)"
-                >
-                  Sign in
-                </Link>
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full text-center py-2 rounded-lg border border-(--color-text-muted) font-medium text-(--color-text)"
+                    >
+                      Sign in
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full text-center py-2 rounded-lg bg-(--color-primary) text-white font-medium"
+                  >
+                    Profile
+                  </Link>
+                )}
               </div>
             </motion.div>
           </>
