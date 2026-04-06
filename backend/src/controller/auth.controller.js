@@ -316,7 +316,7 @@ const logoutAllController = async (req, res) => {
 
     await Session.updateMany({ userId: decodedToken.id }, { isValid: false });
 
-    await logActivity(req, decoded.id, "LOGOUT_ALL");
+    await logActivity(req, decodedToken.id, "LOGOUT_ALL");
 
     return res
       .status(200)

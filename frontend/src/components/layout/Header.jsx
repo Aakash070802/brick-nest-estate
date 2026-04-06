@@ -16,7 +16,10 @@ import {
   logoutCurrentDevice,
   logoutAllDevices,
 } from "../../services/authService";
-import { loginFailure } from "../../redux/features/userSlice";
+import {
+  loginFailure,
+  logOutUserSuccess,
+} from "../../redux/features/userSlice";
 import { toast } from "react-toastify";
 
 const Header = () => {
@@ -36,8 +39,8 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logoutCurrentDevice();
-      dispatch(loginFailure(null));
-      toast.success("Logged out");
+      dispatch(logOutUserSuccess());
+      toast.success("Bye Bye! Logged Out.");
       navigate("/");
     } catch (err) {
       toast.error(err.message);
@@ -47,8 +50,8 @@ const Header = () => {
   const handleLogoutAll = async () => {
     try {
       await logoutAllDevices();
-      dispatch(loginFailure(null));
-      toast.success("Logged out from all devices");
+      dispatch(logOutUserSuccess());
+      toast.success("Bye Bye! Logged out from all devices");
       navigate("/");
     } catch (err) {
       toast.error(err.message);
