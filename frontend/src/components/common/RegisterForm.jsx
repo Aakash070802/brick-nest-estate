@@ -60,18 +60,20 @@ const RegisterForm = ({
       initial={{ opacity: 0, x: -40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4 }}
-      className="w-1/2 bg-(--color-surface) p-10 flex flex-col justify-center"
+      className="w-full md:w-1/2 bg-(--color-surface) p-6 sm:p-8 md:p-10 flex flex-col justify-center"
     >
-      <h2 className="text-3xl font-bold mb-2 text-(--color-text)">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-(--color-text)">
         Create Account
       </h2>
-      <p className="text-(--color-text-muted) mb-6">Sign up to get started</p>
+      <p className="text-sm sm:text-base text-(--color-text-muted) mb-6">
+        Sign up to get started
+      </p>
 
       {/* AVATAR */}
       <div className="flex justify-center mb-6">
         <motion.div
           whileHover={{ scale: 1.05 }}
-          className="w-24 h-24 rounded-full overflow-hidden cursor-pointer border-2 border-(--color-border)"
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden cursor-pointer border-2 border-(--color-border)"
           onClick={() => fileRef.current.click()}
         >
           <img
@@ -103,7 +105,7 @@ const RegisterForm = ({
             placeholder="Enter Username"
             value={formData.username}
             onChange={handleChange}
-            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {errors.username && (
             <p className="text-red-500 text-xs mt-1">{errors.username}</p>
@@ -121,7 +123,7 @@ const RegisterForm = ({
             placeholder="Enter Email ID"
             value={formData.email}
             onChange={handleChange}
-            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {errors.email && (
             <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -133,18 +135,20 @@ const RegisterForm = ({
           <label className="text-sm text-(--color-text)">
             Password <span className="text-red-500">*</span>
           </label>
+
           <input
             type={showPassword ? "text" : "password"}
             id="password"
             value={formData.password}
             placeholder="Enter Password"
             onChange={handleChange}
-            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
+          {/* FIXED ICON POSITION */}
           <span
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-11.75 -translate-y-1/2 cursor-pointer text-(--color-text-muted)"
+            className="absolute right-3 top-9.5 cursor-pointer text-(--color-text-muted)"
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
@@ -161,7 +165,7 @@ const RegisterForm = ({
         </motion.button>
       </form>
 
-      <p className="mt-4 text-sm text-(--color-text-muted)">
+      <p className="mt-4 text-sm text-(--color-text-muted) text-center md:text-left">
         Already have an account?{" "}
         <Link to="/login" className="text-(--color-primary)">
           Sign in

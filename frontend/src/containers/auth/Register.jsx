@@ -65,11 +65,11 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--color-bg)">
+    <div className="min-h-screen flex items-center justify-center bg-(--color-bg) px-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex w-225 rounded-2xl overflow-hidden"
+        className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg flex flex-col md:flex-row"
       >
         <RegisterForm
           formData={formData}
@@ -79,7 +79,7 @@ const Register = () => {
           error={error}
         />
 
-        <div className="w-1/2 hidden md:block">
+        <div className="hidden md:block md:w-1/2">
           <img src={registerBgImg} className="h-full w-full object-cover" />
         </div>
       </motion.div>

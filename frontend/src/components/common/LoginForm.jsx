@@ -16,12 +16,15 @@ const LoginForm = ({
   onForgotPassword,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div className="w-1/2 bg-(--color-surface) p-10 flex flex-col justify-center">
-      <h2 className="text-3xl font-bold mb-2 text-(--color-text)">
+    <div className="w-full md:w-1/2 bg-(--color-surface) p-6 sm:p-8 md:p-10 flex flex-col justify-center">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-(--color-text)">
         Welcome Back
       </h2>
-      <p className="text-(--color-text-muted) mb-6">Sign in to your account</p>
+      <p className="text-sm sm:text-base text-(--color-text-muted) mb-6">
+        Sign in to your account
+      </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
@@ -30,7 +33,7 @@ const LoginForm = ({
           id="email"
           value={formData.email}
           onChange={handleChange}
-          className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+          className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
         <div className="relative">
@@ -40,7 +43,7 @@ const LoginForm = ({
             value={formData.password}
             onChange={handleChange}
             placeholder="Password"
-            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
           <span
@@ -50,8 +53,10 @@ const LoginForm = ({
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
         </div>
+
         <motion.button
           whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           disabled={loading}
           className="p-3 rounded-xl text-white font-semibold"
           style={{ background: "var(--gradient-primary)" }}
@@ -59,9 +64,10 @@ const LoginForm = ({
           {loading ? "Loading..." : "Login"}
         </motion.button>
       </form>
+
       <p
         onClick={onForgotPassword}
-        className="mt-2 text-center text-sm text-blue-500 cursor-pointer"
+        className="mt-3 text-center text-sm text-blue-500 cursor-pointer hover:underline"
       >
         Forgot Password?
       </p>
@@ -70,7 +76,7 @@ const LoginForm = ({
 
       <GoogleButton onClick={handleGoogleLogin} loading={googleLoading} />
 
-      <p className="mt-4 text-sm text-(--color-text-muted)">
+      <p className="mt-4 text-sm text-(--color-text-muted) text-center md:text-left">
         Don't have an account?{" "}
         <Link to="/register" className="text-(--color-primary)">
           Sign up
