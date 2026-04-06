@@ -57,6 +57,26 @@ export const loginWithGoogle = async () => {
   }
 };
 
+// LOGOUT
+export const logoutCurrentDevice = async () => {
+  try {
+    const res = await api.get("/auth/logout");
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// LOGOUT ALL
+export const logoutAllDevices = async () => {
+  try {
+    const res = await api.get("/auth/logout-all");
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 // REQUEST OTP
 export const requestRestore = async (email) => {
   try {

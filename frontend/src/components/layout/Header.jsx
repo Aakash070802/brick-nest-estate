@@ -4,18 +4,56 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import darkLogo from "../../assets/logo-dark.png";
 import lightLogo from "../../assets/logo-light.png";
+import { CgProfile } from "react-icons/cg";
+import { IoMdLogOut } from "react-icons/io";
+import { GoAlertFill } from "react-icons/go";
 import { useTheme } from "../../hooks/useTheme";
 import { useSelector } from "react-redux";
+// LOGOUT STATES
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  logoutCurrentDevice,
+  logoutAllDevices,
+} from "../../services/authService";
+import { loginFailure } from "../../redux/features/userSlice";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const location = useLocation();
   const isSignIn = location.pathname === "/login";
   const { theme, toggleTheme } = useTheme();
-
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const navItems = ["buy", "rent", "sell"];
   const { currentUser } = useSelector((state) => state.user);
+
+  // LOGOUT HANDLERS
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logoutCurrentDevice();
+      dispatch(loginFailure(null));
+      toast.success("Logged out");
+      navigate("/");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAllDevices();
+      dispatch(loginFailure(null));
+      toast.success("Logged out from all devices");
+      navigate("/");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   return (
     <motion.header
@@ -112,25 +150,70 @@ const Header = () => {
               </Link>
             </div>
           ) : (
-            <Link to="/profile" className="hidden md:block">
+            <div className="hidden md:block relative">
               <motion.div
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative"
+                className="relative cursor-pointer"
+                onClick={() => setShowDropdown((prev) => !prev)}
               >
-                {/* GRADIENT RING */}
                 <div className="p-0.5 rounded-full bg-linear-to-r from-indigo-500 to-purple-500">
                   <img
-                    src={currentUser.data.avatar || "/default-user.png"}
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover bg-(--color-card)"
+                    src={currentUser.avatar || "/default-user.png"}
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 </div>
 
-                {/* ONLINE DOT (optional but sexy UI) */}
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-black rounded-full" />
               </motion.div>
-            </Link>
+              <AnimatePresence>
+                {showDropdown && (
+                  <>
+                    {/* CLICK OUTSIDE */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowDropdown(false)}
+                    />
+
+                    {/* DROPDOWN */}
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-full mt-3 w-56 bg-(--color-card) border border-(--color-border) rounded-xl shadow-xl z-50 overflow-hidden"
+                    >
+                      {/* PROFILE */}
+                      <button
+                        onClick={() => {
+                          navigate("/profile");
+                          setShowDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) hover:text-green-500 cursor-pointer transition"
+                      >
+                        <CgProfile /> View Profile
+                      </button>
+
+                      {/* LOGOUT */}
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) hover:text-red-500 cursor-pointer transition"
+                      >
+                        <IoMdLogOut /> Logout
+                      </button>
+
+                      {/* LOGOUT ALL */}
+                      <button
+                        onClick={handleLogoutAll}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 cursor-pointer transition"
+                      >
+                        <GoAlertFill /> Logout All Devices
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           )}
 
           {/* MOBILE MENU BUTTON */}

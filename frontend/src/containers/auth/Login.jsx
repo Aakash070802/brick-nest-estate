@@ -65,7 +65,7 @@ const Login = () => {
 
       const data = await loginUser(formData);
 
-      dispatch(loginSuccess(data));
+      dispatch(loginSuccess(data.data));
       toast.success("Welcome");
       navigate("/");
     } catch (err) {
@@ -84,7 +84,7 @@ const Login = () => {
 
       const data = await loginWithGoogle();
 
-      dispatch(loginSuccess(data));
+      dispatch(loginSuccess(data.data));
       toast.success("Welcome");
       navigate("/");
     } catch (err) {
@@ -115,7 +115,7 @@ const Login = () => {
     try {
       const data = await verifyRestore(formData.email, otp);
 
-      dispatch(loginSuccess(data));
+      dispatch(loginSuccess(data.data));
       toast.success("Account restored");
 
       setShowRestoreModal(false);

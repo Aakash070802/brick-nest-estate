@@ -296,7 +296,7 @@ const logoutController = async (req, res) => {
  * @function logoutAllController
  * @description Handles user logout from all devices.
  * @body {string} refreshToken - The refresh token of the user (required in cookies)
- * @GET /api/auth/logout
+ * @GET /api/auth/logout-all
  */
 const logoutAllController = async (req, res) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
