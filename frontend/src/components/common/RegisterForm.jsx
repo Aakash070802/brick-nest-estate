@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 
 const RegisterForm = ({
   formData,
@@ -12,6 +14,7 @@ const RegisterForm = ({
   const fileRef = useRef(null);
 
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const previewUrl = formData.avatar
     ? URL.createObjectURL(formData.avatar)
@@ -97,6 +100,7 @@ const RegisterForm = ({
           <input
             type="text"
             id="username"
+            placeholder="Enter Username"
             value={formData.username}
             onChange={handleChange}
             className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
@@ -114,6 +118,7 @@ const RegisterForm = ({
           <input
             type="email"
             id="email"
+            placeholder="Enter Email ID"
             value={formData.email}
             onChange={handleChange}
             className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
@@ -124,17 +129,25 @@ const RegisterForm = ({
         </div>
 
         {/* PASSWORD */}
-        <div>
+        <div className="relative">
           <label className="text-sm text-(--color-text)">
             Password <span className="text-red-500">*</span>
           </label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             value={formData.password}
+            placeholder="Enter Password"
             onChange={handleChange}
-            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
           />
+
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-11.75 -translate-y-1/2 cursor-pointer text-(--color-text-muted)"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </span>
         </div>
 
         <motion.button

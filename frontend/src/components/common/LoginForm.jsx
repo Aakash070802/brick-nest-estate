@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import GoogleButton from "./GoogleButton";
+import { useState } from "react";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 
 const LoginForm = ({
   formData,
@@ -9,8 +12,8 @@ const LoginForm = ({
   handleGoogleLogin,
   loading,
   googleLoading,
-  error,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="w-1/2 bg-(--color-surface) p-10 flex flex-col justify-center">
       <h2 className="text-3xl font-bold mb-2 text-(--color-text)">
@@ -28,15 +31,23 @@ const LoginForm = ({
           className="p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          id="password"
-          value={formData.password}
-          onChange={handleChange}
-          className="p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Password"
+            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
+          />
 
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-(--color-text-muted)"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </span>
+        </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
           disabled={loading}
@@ -46,6 +57,9 @@ const LoginForm = ({
           {loading ? "Loading..." : "Login"}
         </motion.button>
       </form>
+      <p className="mt-2 text-center text-sm text-blue-500 cursor-pointer">
+        Forgot Password?
+      </p>
 
       <div className="my-4 text-center text-(--color-text-muted)">or</div>
 

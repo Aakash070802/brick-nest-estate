@@ -99,7 +99,7 @@ const registerController = async (req, res) => {
   }
 
   const safeUser = await User.findById(createdUser?._id);
-  await logActivity(req, createdUser._id, "REGISTER");
+  await logActivity(req, safeUser._id, "REGISTER");
 
   return res
     .status(201)
