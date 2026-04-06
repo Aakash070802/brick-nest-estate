@@ -27,7 +27,7 @@ const otpSchema = new Schema(
 
     purpose: {
       type: String,
-      enum: ["restore-account", "reset-password"],
+      enum: ["restore-account", "forgot-password"],
       required: true,
     },
 

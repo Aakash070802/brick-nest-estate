@@ -28,7 +28,7 @@ const LoginForm = ({
           id="email"
           value={formData.email}
           onChange={handleChange}
-          className="p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+          className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none"
         />
 
         <div className="relative">

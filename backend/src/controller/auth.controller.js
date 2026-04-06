@@ -134,7 +134,7 @@ const loginController = async (req, res) => {
   }
 
   if (!user.isActive) {
-    throw new ApiError(403, "Account is deactivated");
+    throw new ApiError(403, "ACCOUNT_DEACTIVATED");
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
@@ -183,7 +183,7 @@ const googleController = async (req, res) => {
   let user = await User.findOne({ email });
 
   if (user && !user.isActive) {
-    throw new ApiError(403, "Account is deactivated");
+    throw new ApiError(403, "ACCOUNT_DEACTIVATED");
   }
 
   const options = {
@@ -354,7 +354,7 @@ const refreshTokenController = async (req, res) => {
     }
 
     if (!user.isActive) {
-      throw new ApiError(403, "Account is deactivated");
+      throw new ApiError(403, "ACCOUNT_DEACTIVATED");
     }
 
     // New Session Auth based
@@ -544,7 +544,9 @@ const verifyRestoreUser = async (req, res) => {
   return res
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json(new ApiResponse(200, "Account restored successfully"));
+    .json(
+      new ApiResponse(200, "Account restored successfully", sanitizeUser(user))
+    );
 };
 
 export {

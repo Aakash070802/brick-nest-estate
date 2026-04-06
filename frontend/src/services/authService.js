@@ -56,3 +56,26 @@ export const loginWithGoogle = async () => {
     };
   }
 };
+
+// REQUEST OTP
+export const requestRestore = async (email) => {
+  try {
+    const res = await api.post("/auth/request-restore-account", { email });
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// VERIFY OTP
+export const verifyRestore = async (email, otp) => {
+  try {
+    const res = await api.post("/auth/verify-restore-account", {
+      email,
+      otp,
+    });
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
