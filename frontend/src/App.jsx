@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { routes } from "./routes/routesConfig";
+import { useSelector } from "react-redux";
+import GlobalLoader from "./components/common/GlobalLoader";
 
 const renderRoutes = (routesArray) => {
   return routesArray.map((route, index) => {
@@ -16,7 +18,14 @@ const renderRoutes = (routesArray) => {
 };
 
 function App() {
-  return <Routes>{renderRoutes(routes)}</Routes>;
+  const { globalLoading } = useSelector((state) => state.user);
+
+  return (
+    <>
+      {globalLoading && <GlobalLoader />}
+      <Routes>{renderRoutes(routes)}</Routes>
+    </>
+  );
 }
 
 export default App;

@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { FaEdit } from "react-icons/fa";
 import Modal from "../../components/common/Modal";
+import ProfileSkeleton from "../../components/skeletons/ProfileSkeleton";
 
 const Profile = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -101,6 +102,10 @@ const Profile = () => {
     }
   };
 
+  if (!currentUser) {
+    return <ProfileSkeleton />;
+  }
+
   return (
     <div className="min-h-screen flex justify-center items-start px-4 py-10 bg-(--color-bg)">
       <motion.div
@@ -111,7 +116,7 @@ const Profile = () => {
         {/* AVATAR */}
         <div className="flex flex-col items-center gap-3">
           <div
-            className="relative cursor-pointer"
+            className="relative cursor-pointer p-0.5 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
             onClick={() => fileRef.current.click()}
           >
             <motion.img

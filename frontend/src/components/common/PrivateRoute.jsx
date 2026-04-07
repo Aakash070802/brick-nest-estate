@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { logOutUserSuccess } from "../../redux/features/userSlice";
+import GlobalLoader from "./GlobalLoader";
 
 const PrivateRoute = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -30,7 +31,7 @@ const PrivateRoute = () => {
 
   // ⏳ loading state (important)
   if (checkingAuth) {
-    return <div>Checking authentication...</div>;
+    return <GlobalLoader />;
   }
 
   return isValid && currentUser ? <Outlet /> : <Navigate to="/login" />;

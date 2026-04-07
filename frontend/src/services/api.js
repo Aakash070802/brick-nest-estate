@@ -1,6 +1,7 @@
 import axios from "axios";
 import { store } from "../redux/store";
 import { loginFailure } from "../redux/features/userSlice";
+import { setGlobalLoading } from "../redux/features/userSlice";
 
 // create instance
 const api = axios.create({
@@ -10,8 +11,13 @@ const api = axios.create({
 
 // response interceptors
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    store.dispatch(setGlobalLoading(false));
+    return res;
+  },
   async (error) => {
+    store.dispatch(setGlobalLoading(false));
+
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -24,11 +30,9 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
 
-        // retry original request
         return api(originalRequest);
       } catch (err) {
         store.dispatch(loginFailure(null));
-        window.location.href = "/login";
       }
     }
 

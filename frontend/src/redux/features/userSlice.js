@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   currentUser: null,
   loading: false,
+  globalLoading: false,
   error: null,
 };
 
@@ -51,6 +52,10 @@ const userSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+
+    setGlobalLoading: (state, action) => {
+      state.globalLoading = action.payload;
+    },
   },
 });
 
@@ -63,6 +68,7 @@ export const {
   updateUserFailure,
   deleteUserSuccess,
   logOutUserSuccess,
+  setGlobalLoading,
 } = userSlice.actions;
 
 export default userSlice.reducer;
