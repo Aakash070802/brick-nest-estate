@@ -8,8 +8,10 @@ import Register from "../containers/auth/Register";
 import Profile from "../containers/user/Profile";
 
 import Listing from "../containers/listing/Listing";
-import CreateListing from "../containers/listing/CreateListing";
-import UpdateListing from "../containers/listing/UpdateListing";
+import ViewMyListing from "../containers/listing/ViewMyListing";
+import UpdateListingForm from "../components/listing/UpdateListingForm";
+import DeleteListingModal from "../components/listing/DeleteListingModal";
+import CreateListingForm from "../components/listing/CreateListingForm";
 
 import Search from "../containers/Search";
 
@@ -34,8 +36,16 @@ export const routes = [
         element: <PrivateRoute />,
         children: [
           { path: "/profile", element: <Profile /> },
-          { path: "/create-listing", element: <CreateListing /> },
-          { path: "/update-listing/:listingId", element: <UpdateListing /> },
+          { path: "/view-my-lists", element: <ViewMyListing /> },
+          { path: "/create-listing", element: <CreateListingForm /> },
+          {
+            path: "/delete-listing/:listingId",
+            element: <DeleteListingModal />,
+          },
+          {
+            path: "/update-listing/:listingId",
+            element: <UpdateListingForm />,
+          },
         ],
       },
     ],

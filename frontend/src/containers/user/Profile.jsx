@@ -148,7 +148,7 @@ const Profile = () => {
           <ProfileActions
             onPassword={() => setShowPasswordModal(true)}
             onDelete={() => setShowDeleteModal(true)}
-            onCreateListing={() => navigate("/create-listing")}
+            onCreateListing={() => navigate("/view-my-lists")}
           />
         </motion.div>
 
