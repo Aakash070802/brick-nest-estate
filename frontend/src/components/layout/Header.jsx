@@ -16,10 +16,7 @@ import {
   logoutCurrentDevice,
   logoutAllDevices,
 } from "../../services/authService";
-import {
-  loginFailure,
-  logOutUserSuccess,
-} from "../../redux/features/userSlice";
+import { loginFailure } from "../../redux/features/userSlice";
 import { toast } from "react-toastify";
 
 const Header = () => {
@@ -39,8 +36,8 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logoutCurrentDevice();
-      dispatch(logOutUserSuccess());
-      toast.success("Bye Bye! Logged Out.");
+      dispatch(loginFailure(null));
+      toast.success("Logged out");
       navigate("/");
     } catch (err) {
       toast.error(err.message);
@@ -50,8 +47,8 @@ const Header = () => {
   const handleLogoutAll = async () => {
     try {
       await logoutAllDevices();
-      dispatch(logOutUserSuccess());
-      toast.success("Bye Bye! Logged out from all devices");
+      dispatch(loginFailure(null));
+      toast.success("Logged out from all devices");
       navigate("/");
     } catch (err) {
       toast.error(err.message);
@@ -92,7 +89,7 @@ const Header = () => {
         </div>
 
         {/* CENTER */}
-        <div className="flex items-center gap-3 mr-14 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 mr-12">
           <Link to="/">
             <motion.img
               src={theme === "light" ? darkLogo : lightLogo}
@@ -192,7 +189,7 @@ const Header = () => {
                           navigate("/profile");
                           setShowDropdown(false);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) hover:text-green-500 cursor-pointer transition"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) hover:text-green-500 cursor-pointer transition-all"
                       >
                         <CgProfile /> View Profile
                       </button>
@@ -200,7 +197,7 @@ const Header = () => {
                       {/* LOGOUT */}
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) hover:text-red-500 cursor-pointer transition"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-(--color-text) hover:bg-(--color-surface) transition"
                       >
                         <IoMdLogOut /> Logout
                       </button>
@@ -208,7 +205,7 @@ const Header = () => {
                       {/* LOGOUT ALL */}
                       <button
                         onClick={handleLogoutAll}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 cursor-pointer transition"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 transition"
                       >
                         <GoAlertFill /> Logout All Devices
                       </button>
