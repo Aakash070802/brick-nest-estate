@@ -92,7 +92,7 @@ const Header = () => {
         </div>
 
         {/* CENTER */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 mr-14 sm:gap-4">
           <Link to="/">
             <motion.img
               src={theme === "light" ? darkLogo : lightLogo}

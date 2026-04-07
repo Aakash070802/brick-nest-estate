@@ -67,6 +67,8 @@ const updateUserController = async (req, res) => {
   delete safeUser.password;
   delete safeUser.refreshToken;
 
+  await logActivity(req, safeUser._id, "UPDATED_USER_DETAILS");
+
   return res
     .status(200)
     .json(new ApiResponse(200, "User Details Updated successfully!", safeUser));
@@ -107,6 +109,9 @@ const updateAvatarController = async (req, res) => {
   const safeUser = updatedUser.toObject();
   delete safeUser.password;
   delete safeUser.refreshToken;
+
+  await logActivity(req, safeUser._id, "UPDATE_USER_AVATAR");
+
   return res
     .status(200)
     .json(new ApiResponse(200, "Avatar Updated Successfully.", safeUser));
@@ -135,6 +140,8 @@ const changePasswordController = async (req, res) => {
 
   user.password = newPassword;
   await user.save();
+
+  await logActivity(req, user._id, "UPDATED_PASSWORD");
 
   return res
     .status(200)

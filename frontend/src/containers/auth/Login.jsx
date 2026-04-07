@@ -183,149 +183,160 @@ const Login = () => {
             <img src={loginBgImg} className="h-full w-full object-cover" />
           </div>
         </motion.div>
+
+        {showRestoreModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-md bg-(--color-surface) p-6 rounded-2xl shadow-xl"
+            >
+              <h2 className="text-lg font-semibold mb-2 text-(--color-text)">
+                Restore Account
+              </h2>
+
+              <p className="text-sm text-(--color-text-muted) mb-5">
+                Your account is deactivated. Enter OTP to restore it.
+              </p>
+
+              {step === 1 ? (
+                <>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                  />
+
+                  <button
+                    onClick={handleRequestOtp}
+                    className="mt-4 w-full py-3 rounded-xl text-white font-medium"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Send OTP
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                  />
+
+                  <button
+                    onClick={handleVerifyOtp}
+                    className="mt-4 w-full py-3 rounded-xl text-white font-medium"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Verify & Restore
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => setShowRestoreModal(false)}
+                className="mt-4 text-sm text-red-400 hover:underline"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
+
+        {showForgotModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-md bg-(--color-surface) p-6 rounded-2xl shadow-xl"
+            >
+              <h2 className="text-lg font-semibold mb-2 text-(--color-text)">
+                Forgot Password
+              </h2>
+
+              <p className="text-sm text-(--color-text-muted) mb-5">
+                Reset your password in a few steps
+              </p>
+
+              {/* STEP 1 */}
+              {forgotStep === 1 && (
+                <>
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                  />
+
+                  <button
+                    onClick={handleForgotRequest}
+                    className="mt-4 w-full py-3 rounded-xl text-white font-medium"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Send OTP
+                  </button>
+                </>
+              )}
+
+              {/* STEP 2 */}
+              {forgotStep === 2 && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={forgotOtp}
+                    onChange={(e) => setForgotOtp(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                  />
+
+                  <button
+                    onClick={handleVerifyForgotOtp}
+                    className="mt-4 w-full py-3 rounded-xl text-white font-medium"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Verify OTP
+                  </button>
+                </>
+              )}
+
+              {/* STEP 3 */}
+              {forgotStep === 3 && (
+                <>
+                  <input
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
+                  />
+
+                  <button
+                    onClick={handleResetPassword}
+                    className="mt-4 w-full py-3 rounded-xl text-white font-medium"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    Reset Password
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => {
+                  setShowForgotModal(false);
+                  setForgotStep(1);
+                }}
+                className="mt-4 text-sm text-red-400 hover:underline"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
       </div>
-
-      {showRestoreModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border) text-sm sm:text-base">
-            <h2 className="text-xl font-bold mb-4 text-(--color-text)">
-              Restore Account
-            </h2>
-
-            <p className="text-sm text-(--color-text-muted) mb-4">
-              Your account is deactivated. Enter OTP to restore it.
-            </p>
-
-            {/* STEP CONTROL */}
-            {step === 1 ? (
-              <>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-                />
-
-                <button
-                  onClick={handleRequestOtp}
-                  className="mt-4 w-full p-3 rounded-xl text-white"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Send OTP
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  placeholder="Enter OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-                />
-
-                <button
-                  onClick={handleVerifyOtp}
-                  className="mt-4 w-full p-3 rounded-xl text-white"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Verify & Restore
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={() => setShowRestoreModal(false)}
-              className="mt-3 text-sm text-red-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showForgotModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border) text-sm sm:text-base">
-            <h2 className="text-xl font-bold mb-4 text-(--color-text)">
-              Forgot Password
-            </h2>
-
-            {/* STEP 1 — EMAIL */}
-            {forgotStep === 1 && (
-              <>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-                />
-
-                <button
-                  onClick={handleForgotRequest}
-                  className="mt-4 w-full p-3 rounded-xl text-white"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Send OTP
-                </button>
-              </>
-            )}
-
-            {/* STEP 2 — OTP */}
-            {forgotStep === 2 && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Enter OTP"
-                  value={forgotOtp}
-                  onChange={(e) => setForgotOtp(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-                />
-
-                <button
-                  onClick={handleVerifyForgotOtp}
-                  className="mt-4 w-full p-3 rounded-xl text-white"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Verify OTP
-                </button>
-              </>
-            )}
-
-            {/* STEP 3 — NEW PASSWORD */}
-            {forgotStep === 3 && (
-              <>
-                <input
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-(--color-card) border border-(--color-border)"
-                />
-
-                <button
-                  onClick={handleResetPassword}
-                  className="mt-4 w-full p-3 rounded-xl text-white"
-                  style={{ background: "var(--gradient-primary)" }}
-                >
-                  Reset Password
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={() => {
-                setShowForgotModal(false);
-                setForgotStep(1);
-              }}
-              className="mt-3 text-sm text-red-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };
