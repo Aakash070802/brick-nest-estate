@@ -35,7 +35,7 @@ const NotFound = () => {
           <motion.img
             src={ghost}
             alt="ghost"
-            className="w-20 md:w-30 opacity-80"
+            className="w-20 md:w-30 opacity-80 rounded-full border-4 border-border"
             animate={{ y: [-6, 6] }}
             transition={{
               repeat: Infinity,
