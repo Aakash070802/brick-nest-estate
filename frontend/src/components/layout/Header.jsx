@@ -16,6 +16,7 @@ import {
 } from "../../services/authService";
 import { loginFailure } from "../../redux/features/userSlice";
 import { toast } from "react-toastify";
+import { ThemeToggleButton } from "../ui/theme-toggle-button";
 
 const Header = () => {
   const location = useLocation();
@@ -80,18 +81,13 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={theme === "light" ? darkLogo : lightLogo}
+              src={theme === "dark" ? lightLogo : darkLogo}
               className="h-10"
               alt="logo"
             />
           </Link>
 
-          <button
-            onClick={toggleTheme}
-            className="p-2 hover:scale-105 transition cursor-pointer"
-          >
-            {theme === "dark" ? <FaSun /> : <FaMoon />}
-          </button>
+          <ThemeToggleButton className="h-10 w-10" />
         </div>
 
         {/* RIGHT */}

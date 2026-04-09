@@ -6,7 +6,6 @@ const getInitialTheme = () => {
   const saved = localStorage.getItem("theme");
   if (saved) return saved;
 
-  // system preference
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
@@ -27,8 +26,25 @@ const useTheme = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // IMPORTANT: sync across components
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    const isDark = document.documentElement.classList.contains("dark");
+    const newTheme = isDark ? "light" : "dark";
+    setTheme(newTheme);
   };
 
   return { theme, toggleTheme };
