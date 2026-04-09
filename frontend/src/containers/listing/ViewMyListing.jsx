@@ -66,7 +66,7 @@ const ViewMyListing = () => {
         <div className="grid md:grid-cols-3 gap-4">
           {listings.map((listing) => (
             <ListingCard
-              key={listing._id}
+              key={listing._id || Math.random()}
               listing={listing}
               onEdit={() => {
                 setSelectedListing(listing);

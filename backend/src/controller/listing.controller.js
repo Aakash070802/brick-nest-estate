@@ -80,7 +80,7 @@ const createListing = async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, listing, "Listing created successfully"));
+    .json(new ApiResponse(201, "Listing created successfully", listing));
 };
 
 /**
@@ -92,14 +92,10 @@ const getUserListings = async (req, res) => {
   const user = req.user;
 
   if (!user) {
-    throw new ApiError(400, "Unauthorized Access, User not found!");
+    throw new ApiError(401, "Unauthorized Access");
   }
 
   const property = await Listing.find({ userRef: user._id });
-
-  if (!property || property.length === 0) {
-    throw new ApiError(404, "Property not found!");
-  }
 
   res
     .status(200)

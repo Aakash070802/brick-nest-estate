@@ -52,14 +52,14 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
       const res = await createListing(data);
 
       toast.success("Listing created");
-      onSuccess(res.data);
+      onSuccess(res);
     } catch (err) {
       toast.error(err.message);
     }
   };
 
   return (
-    <div className="mb-6 p-4 sm:p-6 rounded-xl bg-[var(--color-surface)] shadow-lg">
+    <div className="mb-6 p-4 sm:p-6 rounded-xl bg-(--color-surface) shadow-lg">
       {/* HEADER */}
       <div className="flex justify-between mb-4">
         <h2 className="text-lg sm:text-xl font-semibold">Create Listing</h2>
@@ -130,7 +130,7 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         </select>
 
         {/* FILE UPLOAD */}
-        <label className="md:col-span-2 border border-dashed border-gray-500 rounded-lg p-4 text-center cursor-pointer hover:bg-[var(--color-card)] transition">
+        <label className="md:col-span-2 border border-dashed border-gray-500 rounded-lg p-4 text-center cursor-pointer hover:bg-(--color-card) transition">
           <p className="text-sm text-gray-400">Click to upload images</p>
           <input
             type="file"
