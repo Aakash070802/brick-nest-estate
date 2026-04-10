@@ -87,7 +87,7 @@ const Header = () => {
             />
           </Link>
 
-          <ThemeToggleButton className="h-10 w-10" />
+          <ThemeToggleButton className="h-10 w-10 cursor-pointer" />
         </div>
 
         {/* RIGHT */}
@@ -123,13 +123,30 @@ const Header = () => {
               </Link>
             </div>
           ) : (
-            <div className="relative hidden md:block">
-              <img
-                src={currentUser.avatar || "/default-user.png"}
-                className="w-9 h-9 rounded-full cursor-pointer"
+            <div className="relative">
+              <div
+                className="relative w-12 h-12 cursor-pointer"
                 onClick={() => setShowDropdown(!showDropdown)}
-                alt="user"
-              />
+              >
+                {/* GRADIENT BORDER WRAPPER */}
+                <div className="w-full h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-[2px]">
+                  {/* IMAGE */}
+                  <div className="w-full h-full rounded-full overflow-hidden bg-[var(--color-card)]">
+                    <img
+                      src={currentUser?.avatar || "/default-user.png"}
+                      alt="user"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/default-user.png";
+                      }}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* ONLINE BADGE */}
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[var(--color-background)] rounded-full"></span>
+              </div>
 
               <AnimatePresence>
                 {showDropdown && (
