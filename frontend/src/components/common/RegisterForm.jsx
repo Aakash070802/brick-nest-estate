@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
-import { FaEye } from "react-icons/fa";
-import { FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const RegisterForm = ({
   formData,
@@ -20,7 +19,7 @@ const RegisterForm = ({
     ? URL.createObjectURL(formData.avatar)
     : "/default-user.png";
 
-  // 🔥 VALIDATION LOGIC
+  // ✅ VALIDATION
   const validate = () => {
     const newErrors = {};
 
@@ -41,39 +40,47 @@ const RegisterForm = ({
         "Min 6 chars, 1 uppercase, 1 special character required";
     }
 
-    setErrors(newErrors);
+    // ✅ CONFIRM PASSWORD
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirm your password";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
 
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // 🔥 WRAP SUBMIT
   const onSubmit = (e) => {
     e.preventDefault();
-
     if (!validate()) return;
-
-    handleSubmit(e); // pass to container
+    handleSubmit(e);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -40 }}
+      initial={{ opacity: 0, x: -30 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4 }}
-      className="w-full md:w-1/2 bg-(--color-surface) p-6 sm:p-8 md:p-10 flex flex-col justify-center"
+      className="w-full md:w-1/2 
+      bg-[var(--color-background)] 
+      p-5 sm:p-8 md:p-10 
+      flex flex-col justify-center"
     >
-      <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-(--color-text)">
+      {/* Heading */}
+      <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--color-foreground)]">
         Create Account
       </h2>
-      <p className="text-sm sm:text-base text-(--color-text-muted) mb-6">
+
+      <p className="text-sm sm:text-base text-[var(--color-muted-foreground)] mb-6">
         Sign up to get started
       </p>
 
-      {/* AVATAR */}
+      {/* Avatar */}
       <div className="flex justify-center mb-6">
         <motion.div
           whileHover={{ scale: 1.05 }}
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden cursor-pointer border-2 border-(--color-border)"
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden cursor-pointer border-2 border-[var(--color-border)]"
           onClick={() => fileRef.current.click()}
         >
           <img
@@ -94,46 +101,66 @@ const RegisterForm = ({
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        {/* USERNAME */}
+        {/* Username */}
         <div>
-          <label className="text-sm text-(--color-text)">
-            Username <span className="text-red-500">*</span>
+          <label className="text-sm text-[var(--color-foreground)]">
+            Username <span className="text-[var(--color-destructive)]">*</span>
           </label>
+
           <input
             type="text"
             id="username"
             placeholder="Enter Username"
             value={formData.username}
             onChange={handleChange}
-            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-3 rounded-xl w-full 
+            bg-[var(--color-card)] 
+            border border-[var(--color-border)] 
+            text-[var(--color-foreground)] 
+            outline-none 
+            focus:ring-2 focus:ring-[var(--color-primary)] 
+            transition"
           />
+
           {errors.username && (
-            <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+            <p className="text-[var(--color-destructive)] text-xs mt-1">
+              {errors.username}
+            </p>
           )}
         </div>
 
-        {/* EMAIL */}
+        {/* Email */}
         <div>
-          <label className="text-sm text-(--color-text)">
-            Email <span className="text-red-500">*</span>
+          <label className="text-sm text-[var(--color-foreground)]">
+            Email <span className="text-[var(--color-destructive)]">*</span>
           </label>
+
           <input
             type="email"
             id="email"
-            placeholder="Enter Email ID"
+            placeholder="Enter Email"
             value={formData.email}
             onChange={handleChange}
-            className="p-3 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-3 rounded-xl w-full 
+            bg-[var(--color-card)] 
+            border border-[var(--color-border)] 
+            text-[var(--color-foreground)] 
+            outline-none 
+            focus:ring-2 focus:ring-[var(--color-primary)] 
+            transition"
           />
+
           {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            <p className="text-[var(--color-destructive)] text-xs mt-1">
+              {errors.email}
+            </p>
           )}
         </div>
 
-        {/* PASSWORD */}
+        {/* Password */}
         <div className="relative">
-          <label className="text-sm text-(--color-text)">
-            Password <span className="text-red-500">*</span>
+          <label className="text-sm text-[var(--color-foreground)]">
+            Password <span className="text-[var(--color-destructive)]">*</span>
           </label>
 
           <input
@@ -142,35 +169,91 @@ const RegisterForm = ({
             value={formData.password}
             placeholder="Enter Password"
             onChange={handleChange}
-            className="p-3 pr-10 rounded-xl w-full bg-(--color-card) border border-(--color-border) text-(--color-text) outline-none focus:ring-2 focus:ring-indigo-500"
+            className="p-3 pr-10 rounded-xl w-full 
+            bg-[var(--color-card)] 
+            border border-[var(--color-border)] 
+            text-[var(--color-foreground)] 
+            outline-none 
+            focus:ring-2 focus:ring-[var(--color-primary)] 
+            transition"
           />
 
-          {/* FIXED ICON POSITION */}
           <span
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-9.5 cursor-pointer text-(--color-text-muted)"
+            className="absolute right-3 top-[38px] cursor-pointer text-[var(--color-muted-foreground)]"
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
+
+          {errors.password && (
+            <p className="text-[var(--color-destructive)] text-xs mt-1">
+              {errors.password}
+            </p>
+          )}
         </div>
 
+        {/* Confirm Password */}
+        <div className="relative">
+          <label className="text-sm text-[var(--color-foreground)]">
+            Confirm Password{" "}
+            <span className="text-[var(--color-destructive)]">*</span>
+          </label>
+
+          <input
+            type={showPassword ? "text" : "password"}
+            id="confirmPassword"
+            value={formData.confirmPassword || ""}
+            placeholder="Re-enter Password"
+            onChange={handleChange}
+            className="p-3 rounded-xl w-full 
+            bg-[var(--color-card)] 
+            border border-[var(--color-border)] 
+            text-[var(--color-foreground)] 
+            outline-none 
+            focus:ring-2 focus:ring-[var(--color-primary)] 
+            transition"
+          />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[38px] cursor-pointer text-[var(--color-muted-foreground)]"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </span>
+          {errors.confirmPassword && (
+            <p className="text-[var(--color-destructive)] text-xs mt-1">
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
+
+        {/* Button */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           disabled={loading}
-          className="p-3 rounded-xl text-white font-semibold"
-          style={{ background: "var(--gradient-primary)" }}
+          className="p-3 rounded-xl font-semibold 
+          text-[var(--color-primary-foreground)] 
+          bg-[var(--color-primary)] 
+          disabled:opacity-70 transition"
         >
           {loading ? "Creating Account..." : "Register"}
         </motion.button>
       </form>
 
-      <p className="mt-4 text-sm text-(--color-text-muted) text-center md:text-left">
+      {/* Footer */}
+      <p className="mt-4 text-sm text-[var(--color-muted-foreground)] text-center md:text-left">
         Already have an account?{" "}
-        <Link to="/login" className="text-(--color-primary)">
+        <Link to="/login" className="text-[var(--color-primary)]">
           Sign in
         </Link>
       </p>
+
+      {/* Global Error */}
+      {error && (
+        <p className="mt-3 text-sm text-[var(--color-destructive)] text-center">
+          {error}
+        </p>
+      )}
     </motion.div>
   );
 };

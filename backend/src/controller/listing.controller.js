@@ -148,12 +148,14 @@ const getAllListings = async (req, res) => {
   // sorting
   const sortOrder = order === "asc" ? 1 : -1;
 
-  const property = Listing.find(query)
+  const property = await Listing.find(query)
     .sort({ [sort]: sortOrder })
     .limit(Number(limit))
     .skip((page - 1) * limit);
 
-  return res.status(200).json(200, "Properties Fetched Successfully", property);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Properties Fetched Successfully", property));
 };
 
 /**

@@ -39,7 +39,7 @@ const listingSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["rent", "sell", "buy"],
+      enum: ["rent", "sell"],
       required: [true, "Type is required"],
     },
     offer: {
