@@ -18,6 +18,8 @@ import Search from "../containers/Search";
 import PrivateRoute from "../components/common/PrivateRoute";
 import Layout from "../components/layout/Layout";
 
+import NotFound from "../components/common/NotFound";
+
 export const routes = [
   {
     element: <Layout />,
@@ -30,6 +32,7 @@ export const routes = [
       { path: "/register", element: <Register /> },
       { path: "/search", element: <Search /> },
       { path: "/listing/:listingId", element: <Listing /> },
+      { path: "*", element: <NotFound /> },
 
       // PROTECTED
       {

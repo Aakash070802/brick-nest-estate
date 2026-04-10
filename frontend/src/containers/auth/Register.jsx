@@ -56,21 +56,21 @@ const Register = () => {
       await registerUser(data);
 
       toast.success("Account created successfully");
-
       navigate("/login");
     } catch (err) {
-      toast.error(err.message); // clean backend message
+      toast.error(err.message);
       dispatch(loginFailure(null));
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--color-bg) px-4">
+    <div className="min-h-screen flex items-center justify-center bg-(--color-background) px-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg flex flex-col md:flex-row"
+        className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-lg flex flex-col md:flex-row bg-(--color-card)"
       >
+        {/* FORM */}
         <RegisterForm
           formData={formData}
           handleChange={handleChange}
@@ -79,8 +79,13 @@ const Register = () => {
           error={error}
         />
 
+        {/* IMAGE */}
         <div className="hidden md:block md:w-1/2">
-          <img src={registerBgImg} className="h-full w-full object-cover" />
+          <img
+            src={registerBgImg}
+            alt="Register"
+            className="h-full w-full object-cover"
+          />
         </div>
       </motion.div>
     </div>
