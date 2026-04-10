@@ -35,6 +35,17 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
     }
   };
 
+  const handleRemoveImage = (index) => {
+    const updatedPreview = [...preview];
+    updatedPreview.splice(index, 1);
+
+    const updatedImages = [...form.images];
+    updatedImages.splice(index, 1);
+
+    setPreview(updatedPreview);
+    setForm({ ...form, images: updatedImages });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -59,11 +70,13 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="mb-6 p-4 sm:p-6 rounded-xl bg-(--color-surface) shadow-lg">
+    <div className="mb-6 p-4 sm:p-6 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] shadow-lg">
       {/* HEADER */}
       <div className="flex justify-between mb-4">
-        <h2 className="text-lg sm:text-xl font-semibold">Create Listing</h2>
-        <button onClick={onClose} className="text-red-400">
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--color-foreground)]">
+          Create Listing
+        </h2>
+        <button onClick={onClose} className="text-[var(--color-destructive)]">
           Close
         </button>
       </div>
@@ -130,8 +143,10 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         </select>
 
         {/* FILE UPLOAD */}
-        <label className="md:col-span-2 border border-dashed border-gray-500 rounded-lg p-4 text-center cursor-pointer hover:bg-(--color-card) transition">
-          <p className="text-sm text-gray-400">Click to upload images</p>
+        <label className="md:col-span-2 border border-dashed border-[var(--color-border)] rounded-lg p-4 text-center cursor-pointer hover:bg-[var(--color-muted)] transition">
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            Click to upload images
+          </p>
           <input
             type="file"
             id="images"
@@ -145,17 +160,30 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         {preview.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:col-span-2">
             {preview.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                className="h-24 w-full object-cover rounded-lg"
-              />
+              <div key={i} className="relative group">
+                <img
+                  src={img}
+                  className="h-24 w-full object-cover rounded-lg"
+                />
+
+                {/* REMOVE BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(i)}
+                  className="absolute top-1 right-1 
+                bg-black/70 text-white text-xs 
+                px-2 py-0.5 rounded-md 
+                opacity-0 group-hover:opacity-100 transition"
+                >
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
         )}
 
         {/* CHECKBOX */}
-        <div className="flex flex-wrap gap-4 md:col-span-2 text-sm">
+        <div className="flex flex-wrap gap-4 md:col-span-2 text-sm text-[var(--color-foreground)]">
           <label>
             <input type="checkbox" id="furnished" onChange={handleChange} />{" "}
             Furnished
@@ -170,10 +198,7 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         </div>
 
         {/* BUTTON */}
-        <button
-          className="md:col-span-2 py-3 rounded-xl text-white font-semibold"
-          style={{ background: "var(--gradient-primary)" }}
-        >
+        <button className="md:col-span-2 py-3 rounded-xl font-semibold text-[var(--color-primary-foreground)] bg-[var(--color-primary)]">
           Create Listing
         </button>
       </form>

@@ -69,8 +69,7 @@ const NotFound = () => {
         <motion.div variants={item} className="mt-8">
           <Link
             to="/"
-            className="px-6 py-3 rounded-xl font-medium text-[var(--color-primary-foreground)]"
-            style={{ background: "var(--color-primary)" }}
+            className="px-6 py-3 rounded-xl font-medium text-[var(--color-primary-foreground)] bg-[var(--color-primary)]"
           >
             Go Home
           </Link>
