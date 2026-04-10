@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import loginBgImg from "../../assets/login-bg.png";
@@ -45,47 +45,34 @@ const modalAnim = {
 };
 
 const Login = () => {
-  /**
-   * @description State variables for login form, Google login loading state, account restoration flow, and forgot password flow
-   */
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [step, setStep] = useState(1);
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
-  /**
-   * @description State variables for forgot password flow, including modal visibility, step tracking, form inputs, and error handling
-   */
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotOtp, setForgotOtp] = useState(["", "", "", "", "", ""]);
+
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [resetError, setResetError] = useState("");
   const [showResetPassword, setShowResetPassword] = useState(false);
 
-  /**
-   * @description Redux dispatch and navigation hooks for handling authentication flow and page redirection
-   */
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.user);
 
-  /**
-   * @function handleChange
-   * @description Updates form data state on input change
-   */
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  /**
-   * @function handleSubmit
-   * @description Validates form data and handles login flow, including error handling for account deactivation
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -113,10 +100,6 @@ const Login = () => {
     }
   };
 
-  /**
-   * @function handleGoogleLogin
-   * @description Handles Google login flow, including error handling for account deactivation and cancellation
-   */
   const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
@@ -138,27 +121,39 @@ const Login = () => {
     }
   };
 
-  /**
-   * @function handleRequestOtp
-   * @description Sends OTP request for account restoration and moves to OTP verification step
-   */
+  // TIMER
+  useEffect(() => {
+    if (!showRestoreModal && !showForgotModal) return;
+
+    if (timeLeft <= 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeLeft, showRestoreModal, showForgotModal]);
+
   const handleRequestOtp = async () => {
     try {
       await requestRestore(formData.email);
-      toast.success("OTP sent");
+      setOtp(["", "", "", "", "", ""]);
+      setTimeLeft(60);
+      setCanResend(false);
       setStep(2);
+      toast.success("OTP sent");
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  /**
-   * @function handleVerifyOtp
-   * @description Verifies OTP for account restoration and logs in the user
-   */
   const handleVerifyOtp = async () => {
     try {
-      const data = await verifyRestore(formData.email, otp);
+      const finalOtp = otp.join("");
+      const data = await verifyRestore(formData.email, finalOtp);
       dispatch(loginSuccess(data.data));
       toast.success("Account restored");
       setShowRestoreModal(false);
@@ -168,27 +163,35 @@ const Login = () => {
     }
   };
 
-  /**
-   * @function handleForgotRequest
-   * @description Sends forgot password request and moves to OTP verification step
-   */
   const handleForgotRequest = async () => {
     try {
       await forgotPasswordRequest(forgotEmail);
-      toast.success("OTP sent");
+      setForgotOtp(["", "", "", "", "", ""]);
+      setTimeLeft(60);
+      setCanResend(false);
       setForgotStep(2);
+      toast.success("OTP sent");
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  /**
-   * @function handleVerifyForgotOtp
-   * @description Verifies OTP for forgot password flow and moves to reset step
-   */
+  const handleOtpChange = (value, index, setter, state) => {
+    if (!/^\d?$/.test(value)) return;
+
+    const updated = [...state];
+    updated[index] = value;
+    setter(updated);
+
+    if (value && index < 5) {
+      document.getElementById(`otp-${index + 1}`)?.focus();
+    }
+  };
+
   const handleVerifyForgotOtp = async () => {
     try {
-      await verifyForgotOtp(forgotEmail, forgotOtp);
+      const finalOtp = forgotOtp.join("");
+      await verifyForgotOtp(forgotEmail, finalOtp);
       toast.success("OTP verified");
       setForgotStep(3);
     } catch (err) {
@@ -196,10 +199,27 @@ const Login = () => {
     }
   };
 
-  /**
-   * @function handleResetPassword
-   * @description Validates new password and sends reset request to server
-   */
+  const handleResendOtp = async () => {
+    try {
+      if (!canResend) return;
+
+      if (showRestoreModal) {
+        await requestRestore(formData.email);
+        setOtp(["", "", "", "", "", ""]);
+      } else {
+        await forgotPasswordRequest(forgotEmail);
+        setForgotOtp(["", "", "", "", "", ""]);
+      }
+
+      setTimeLeft(60);
+      setCanResend(false);
+
+      toast.success("OTP resent");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleResetPassword = async () => {
     setResetError("");
 
@@ -228,6 +248,12 @@ const Login = () => {
     } catch (err) {
       toast.error(err.message);
     }
+  };
+
+  const formatTime = (sec) => {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${m}:${s}`;
   };
 
   return (
@@ -270,8 +296,8 @@ const Login = () => {
                 title="Restore Account"
                 onClose={() => setShowRestoreModal(false)}
               >
-                <p className="text-sm text-[var(--color-muted-foreground)] mb-3">
-                  Your account is deactivated. Enter OTP to restore it.
+                <p className="text-sm text-[var(--color-muted-foreground)] mb-4 text-center">
+                  Enter the 6-digit code sent to your email
                 </p>
 
                 {step === 1 ? (
@@ -279,44 +305,82 @@ const Login = () => {
                     <input
                       value={formData.email}
                       disabled
-                      className="w-full p-3 rounded-xl 
-                bg-[var(--color-card)] 
-                border border-[var(--color-border)] 
-                text-[var(--color-foreground)] 
-                opacity-70"
+                      className="w-full p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)] opacity-70"
                     />
 
                     <button
                       onClick={handleRequestOtp}
-                      className="mt-3 w-full p-3 rounded-xl 
-                bg-[var(--color-primary)] 
-                text-[var(--color-primary-foreground)] 
-                font-semibold"
+                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-chart-5)] text-[var(--color-secondary-foreground)] font-medium"
                     >
                       Send OTP
                     </button>
                   </>
                 ) : (
                   <>
-                    <input
-                      placeholder="Enter OTP"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="w-full p-3 rounded-xl 
-                bg-[var(--color-card)] 
-                border border-[var(--color-border)] 
-                text-[var(--color-foreground)] 
-                focus:ring-2 focus:ring-[var(--color-primary)]"
-                    />
+                    {/* OTP BOXES */}
+                    <div className="flex justify-center gap-3 mb-4">
+                      {otp.map((digit, i) => (
+                        <motion.input
+                          key={i}
+                          id={`otp-${i}`}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(e.target.value, i, setOtp, otp)
+                          }
+                          onPaste={(e) => {
+                            const paste = e.clipboardData
+                              .getData("text")
+                              .slice(0, 6)
+                              .split("");
+                            if (paste.length === 6) {
+                              setOtp(paste);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Backspace" && !otp[i] && i > 0) {
+                              document.getElementById(`otp-${i - 1}`)?.focus();
+                            }
+                          }}
+                          whileFocus={{ scale: 1.1 }}
+                          className="w-12 h-12 text-center text-lg rounded-xl 
+                          border border-[var(--color-border)] 
+                          bg-[var(--color-card)] 
+                          text-[var(--color-foreground)] 
+                          focus:ring-2 focus:ring-[var(--color-ring)]"
+                          maxLength={1}
+                        />
+                      ))}
+                    </div>
 
+                    {/* TIMER */}
+                    <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-2">
+                      {canResend
+                        ? "You can resend OTP now"
+                        : `Resend in ${formatTime(timeLeft)}`}
+                    </p>
+
+                    {/* VERIFY */}
                     <button
                       onClick={handleVerifyOtp}
-                      className="mt-3 w-full p-3 rounded-xl 
-                bg-[var(--color-primary)] 
-                text-[var(--color-primary-foreground)] 
-                font-semibold"
+                      disabled={otp.includes("")}
+                      className="w-full p-3 rounded-xl 
+                      bg-[var(--color-primary)] 
+                      text-[var(--color-primary-foreground)] 
+                      disabled:opacity-50"
                     >
                       Verify & Restore
+                    </button>
+
+                    {/* RESEND */}
+                    <button
+                      onClick={handleResendOtp}
+                      disabled={!canResend}
+                      className="mt-2 w-full p-2 rounded-xl 
+                      bg-[var(--color-chart-2)] 
+                      text-[var(--color-secondary-foreground)] 
+                      disabled:opacity-50"
+                    >
+                      Resend OTP
                     </button>
                   </>
                 )}
@@ -344,46 +408,103 @@ const Login = () => {
                   setForgotStep(1);
                 }}
               >
-                <p className="text-sm text-[var(--color-muted-foreground)] mb-3">
-                  Complete steps to reset your password
+                <p className="text-sm text-[var(--color-muted-foreground)] mb-4 text-center">
+                  Follow steps to reset your password
                 </p>
 
+                {/* STEP 1 */}
                 {forgotStep === 1 && (
                   <>
                     <input
                       placeholder="Enter your email"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:ring-2 focus:ring-[var(--color-primary)]"
+                      className="w-full p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)]"
                     />
 
                     <button
                       onClick={handleForgotRequest}
-                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-chart-5)] text-[var(--color-secondary-foreground)]"
                     >
                       Send OTP
                     </button>
                   </>
                 )}
 
+                {/* STEP 2 */}
                 {forgotStep === 2 && (
                   <>
-                    <input
-                      placeholder="Enter OTP"
-                      value={forgotOtp}
-                      onChange={(e) => setForgotOtp(e.target.value)}
-                      className="w-full p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)]"
-                    />
+                    <div className="flex justify-center gap-3 mb-4">
+                      {forgotOtp.map((digit, i) => (
+                        <motion.input
+                          key={i}
+                          id={`otp-${i}`}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(
+                              e.target.value,
+                              i,
+                              setForgotOtp,
+                              forgotOtp,
+                            )
+                          }
+                          onPaste={(e) => {
+                            const paste = e.clipboardData
+                              .getData("text")
+                              .slice(0, 6)
+                              .split("");
+                            if (paste.length === 6) {
+                              setForgotOtp(paste);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Backspace" &&
+                              !forgotOtp[i] &&
+                              i > 0
+                            ) {
+                              document.getElementById(`otp-${i - 1}`)?.focus();
+                            }
+                          }}
+                          whileFocus={{ scale: 1.1 }}
+                          className="w-12 h-12 text-center text-lg rounded-xl 
+                          border border-[var(--color-border)] 
+                          bg-[var(--color-card)] 
+                          text-[var(--color-foreground)] 
+                          focus:ring-2 focus:ring-[var(--color-ring)]"
+                          maxLength={1}
+                        />
+                      ))}
+                    </div>
+
+                    <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-2">
+                      {canResend
+                        ? "You can resend OTP now"
+                        : `Resend in ${formatTime(timeLeft)}`}
+                    </p>
 
                     <button
                       onClick={handleVerifyForgotOtp}
-                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                      disabled={forgotOtp.includes("")}
+                      className="w-full p-3 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-foreground)] disabled:opacity-50"
                     >
                       Verify OTP
+                    </button>
+
+                    <button
+                      onClick={handleResendOtp}
+                      disabled={!canResend}
+                      className="mt-2 w-full p-2 rounded-xl 
+                      bg-[var(--color-chart-2)] 
+                      text-[var(--color-secondary-foreground)] 
+                      disabled:opacity-50"
+                    >
+                      Resend OTP
                     </button>
                   </>
                 )}
 
+                {/* STEP 3 */}
                 {forgotStep === 3 && (
                   <>
                     <div className="relative">
@@ -392,7 +513,7 @@ const Login = () => {
                         placeholder="New password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full p-3 pr-10 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:ring-2 focus:ring-[var(--color-primary)]"
+                        className="w-full p-3 pr-10 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)]"
                       />
 
                       <span
@@ -408,7 +529,7 @@ const Login = () => {
                       placeholder="Confirm password"
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      className="w-full mt-3 p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)] focus:ring-2 focus:ring-[var(--color-primary)]"
+                      className="w-full mt-3 p-3 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-foreground)]"
                     />
 
                     {resetError && (
@@ -419,7 +540,7 @@ const Login = () => {
 
                     <button
                       onClick={handleResetPassword}
-                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-semibold"
+                      className="mt-3 w-full p-3 rounded-xl bg-[var(--color-chart-5)] text-[var(--color-secondary-foreground)] font-semibold"
                     >
                       Reset Password
                     </button>
