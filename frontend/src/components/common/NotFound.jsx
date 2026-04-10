@@ -18,7 +18,7 @@ const item = {
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--color-background) px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] px-4">
       <motion.div
         variants={container}
         initial="hidden"
@@ -27,7 +27,7 @@ const NotFound = () => {
       >
         {/* 404 */}
         <div className="flex items-center justify-center gap-4 mb-10">
-          <span className="text-[90px] md:text-[130px] font-bold text-(--color-foreground) opacity-60">
+          <span className="text-[90px] md:text-[130px] font-bold text-[var(--color-foreground)] opacity-60">
             4
           </span>
 
@@ -35,7 +35,7 @@ const NotFound = () => {
           <motion.img
             src={ghost}
             alt="ghost"
-            className="w-20 md:w-30 opacity-80 rounded-full border-4 border-border"
+            className="w-20 md:w-30 opacity-80 rounded-full border-4 border-[var(--color-border)]"
             animate={{ y: [-6, 6] }}
             transition={{
               repeat: Infinity,
@@ -44,7 +44,7 @@ const NotFound = () => {
             }}
           />
 
-          <span className="text-[90px] md:text-[130px] font-bold text-(--color-foreground) opacity-60">
+          <span className="text-[90px] md:text-[130px] font-bold text-[var(--color-foreground)] opacity-60">
             4
           </span>
         </div>
@@ -52,7 +52,7 @@ const NotFound = () => {
         {/* Title */}
         <motion.h1
           variants={item}
-          className="text-3xl md:text-5xl font-bold text-(--color-foreground)"
+          className="text-3xl md:text-5xl font-bold text-[var(--color-foreground)]"
         >
           Page not found
         </motion.h1>
@@ -60,7 +60,7 @@ const NotFound = () => {
         {/* Subtitle */}
         <motion.p
           variants={item}
-          className="mt-3 text-(--color-muted-foreground)"
+          className="mt-3 text-[var(--color-muted-foreground)]"
         >
           This route doesn’t exist or got removed.
         </motion.p>
@@ -69,8 +69,8 @@ const NotFound = () => {
         <motion.div variants={item} className="mt-8">
           <Link
             to="/"
-            className="px-6 py-3 rounded-xl text-white font-medium"
-            style={{ background: "var(--primary)" }}
+            className="px-6 py-3 rounded-xl font-medium text-[var(--color-primary-foreground)]"
+            style={{ background: "var(--color-primary)" }}
           >
             Go Home
           </Link>
