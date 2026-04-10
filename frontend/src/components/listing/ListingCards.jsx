@@ -1,50 +1,104 @@
 import { useState } from "react";
-import { FaEllipsisV, FaHeart } from "react-icons/fa";
+import { FaEllipsisV } from "react-icons/fa";
 
 const ListingCard = ({ listing, onEdit, onDelete }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative bg-(--color-card) rounded-xl shadow hover:scale-[1.02] transition">
+    <div
+      className="relative rounded-2xl overflow-hidden 
+      bg-[var(--color-card)] border border-[var(--color-border)] 
+      shadow-sm hover:shadow-xl transition duration-300 group"
+    >
       {/* IMAGE */}
-      <img
-        src={listing.imageUrls?.[0]?.url}
-        className="h-48 w-full object-cover"
-      />
+      <div className="relative">
+        <img
+          src={listing.imageUrls?.[0]?.url}
+          alt={listing.name}
+          className="h-48 sm:h-52 md:h-56 w-full object-cover 
+          group-hover:scale-105 transition duration-300"
+        />
 
-      {/* TOP RIGHT MENU */}
-      <div className="absolute top-2 right-2">
-        <button onClick={() => setOpen(!open)}>
-          <FaEllipsisV />
-        </button>
+        {/* GRADIENT */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
-        {open && (
-          <div className="absolute right-0 bg-white shadow rounded">
-            <button onClick={onEdit} className="block px-4 py-2">
-              Edit
-            </button>
-            <button onClick={onDelete} className="block px-4 py-2 text-red-500">
-              Delete
-            </button>
-          </div>
-        )}
-      </div>
+        {/* 3 DOT MENU (ALWAYS VISIBLE) */}
+        <div className="absolute top-3 right-3">
+          <button
+            onClick={() => setOpen(!open)}
+            className="bg-white/90 dark:bg-black/70 backdrop-blur-md 
+            p-2 rounded-full shadow-md 
+            text-gray-700 dark:text-white 
+            hover:scale-110 transition"
+          >
+            <FaEllipsisV size={14} />
+          </button>
 
-      {/* HEART */}
-      <div className="absolute top-2 left-2 text-red-500">
-        <FaHeart />
+          {open && (
+            <div
+              className="absolute right-0 mt-2 w-32 
+              bg-[var(--color-card)] border border-[var(--color-border)] 
+              rounded-lg shadow-lg overflow-hidden z-50"
+            >
+              <button
+                onClick={onEdit}
+                className="w-full text-left px-4 py-2 text-sm 
+                text-[var(--color-foreground)] cursor-pointer
+                hover:bg-[var(--color-muted)] transition"
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={onDelete}
+                className="w-full text-left px-4 py-2 text-sm 
+                text-[var(--color-destructive)] 
+                cursor-pointer
+                hover:bg-red-500/10 transition"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* DETAILS */}
-      <div className="p-3">
-        <h2 className="font-semibold">{listing.name}</h2>
-        <p className="text-sm text-gray-500">{listing.address}</p>
+      <div className="p-4 space-y-2">
+        {/* TITLE */}
+        <h2 className="text-base sm:text-lg font-semibold text-[var(--color-foreground)] line-clamp-1">
+          {listing.name}
+        </h2>
 
-        <p className="font-bold">₹ {listing.regularPrice}</p>
+        {/* ADDRESS */}
+        <p className="text-sm text-[var(--color-muted-foreground)] line-clamp-1">
+          {listing.address}
+        </p>
 
-        {listing.discountedPrice && (
-          <p className="text-green-500">₹ {listing.discountedPrice}</p>
-        )}
+        {/* PRICE */}
+        <div className="flex items-center justify-between mt-2">
+          <div>
+            <p className="text-lg font-bold text-[var(--color-primary)]">
+              ₹ {listing.discountedPrice || listing.regularPrice}
+            </p>
+
+            {listing.discountedPrice && (
+              <p className="text-sm line-through text-[var(--color-muted-foreground)]">
+                ₹ {listing.regularPrice}
+              </p>
+            )}
+          </div>
+
+          {/* BADGE */}
+          <span
+            className="text-xs px-3 py-1 rounded-full 
+            bg-[var(--color-secondary)] 
+            text-[var(--color-primary-foreground)] 
+            capitalize shadow-sm"
+          >
+            {listing.type}
+          </span>
+        </div>
       </div>
     </div>
   );

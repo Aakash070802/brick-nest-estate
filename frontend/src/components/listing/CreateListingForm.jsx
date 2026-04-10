@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createListing } from "../../services/listingService";
 import { toast } from "react-toastify";
+import { RxCross1 } from "react-icons/rx";
 
 const CreateListingForm = ({ onClose, onSuccess }) => {
   const [form, setForm] = useState({
@@ -137,9 +138,11 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         />
 
         <select id="type" onChange={handleChange} className="input">
+          <option value="" disabled>
+            Rent OR Sell
+          </option>
           <option value="rent">Rent</option>
           <option value="sell">Sell</option>
-          <option value="buy">Buy</option>
         </select>
 
         {/* FILE UPLOAD */}
@@ -171,11 +174,11 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
                   type="button"
                   onClick={() => handleRemoveImage(i)}
                   className="absolute top-1 right-1 
-                bg-black/70 text-white text-xs 
+                bg-black/70 hover:bg-[var(--color-destructive)] text-white text-xs 
                 px-2 py-0.5 rounded-md 
-                opacity-0 group-hover:opacity-100 transition"
+                opacity-0 group-hover:opacity-100 transition cursor-pointer"
                 >
-                  ✕
+                  <RxCross1 />
                 </button>
               </div>
             ))}
