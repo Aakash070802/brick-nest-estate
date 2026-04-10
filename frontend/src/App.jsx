@@ -22,7 +22,10 @@ function App() {
 
   return (
     <>
+      {/* Overlay Loader */}
       {globalLoading && <GlobalLoader />}
+
+      {/* Routes */}
       <Routes>{renderRoutes(routes)}</Routes>
     </>
   );

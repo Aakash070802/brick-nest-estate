@@ -22,27 +22,6 @@ import DeleteModal from "../../components/profile/DeleteModal";
 import ProfileSkeleton from "../../components/skeletons/ProfileSkeleton";
 
 const Profile = () => {
-  // Animations
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.15,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
-  const modalVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.9 },
-  };
-
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -61,8 +40,8 @@ const Profile = () => {
   useEffect(() => {
     if (currentUser) {
       setForm({
-        username: currentUser.username,
-        email: currentUser.email,
+        username: currentUser?.username || "",
+        email: currentUser?.email || "",
       });
     }
   }, [currentUser]);
@@ -112,6 +91,7 @@ const Profile = () => {
       await deleteAccount();
       dispatch(logOutUserSuccess());
       toast.success("Account deleted");
+      navigate("/login");
     } catch (err) {
       toast.error(err.message);
     }
@@ -120,38 +100,51 @@ const Profile = () => {
   if (!currentUser) return <ProfileSkeleton />;
 
   return (
-    <div className="min-h-screen flex justify-center px-4 py-10 bg-(--color-bg)">
+    <div className="min-h-screen flex justify-center px-4 py-10 bg-[var(--color-background)]">
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-md bg-(--color-surface) p-6 rounded-2xl shadow-lg"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md 
+        bg-[var(--color-card)] 
+        border border-[var(--color-border)] 
+        rounded-2xl p-6 
+        shadow-lg"
       >
-        <motion.div variants={itemVariants}>
-          <ProfileHeader
-            user={currentUser}
-            fileRef={fileRef}
-            handleAvatar={handleAvatar}
-          />
-        </motion.div>
+        {/* HEADER */}
+        <ProfileHeader
+          user={currentUser}
+          fileRef={fileRef}
+          handleAvatar={handleAvatar}
+        />
 
-        <motion.div variants={itemVariants}>
+        {/* FORM */}
+        <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)] mb-3">
+            Profile Info
+          </h3>
+
           <ProfileForm
             form={form}
             setForm={setForm}
             handleUpdate={handleUpdate}
             loading={loading}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        {/* ACTIONS */}
+        <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)] mb-3">
+            Actions
+          </h3>
+
           <ProfileActions
             onPassword={() => setShowPasswordModal(true)}
             onDelete={() => setShowDeleteModal(true)}
             onCreateListing={() => navigate("/view-my-lists")}
           />
-        </motion.div>
+        </div>
 
+        {/* MODALS */}
         <PasswordModal
           open={showPasswordModal}
           onClose={() => setShowPasswordModal(false)}

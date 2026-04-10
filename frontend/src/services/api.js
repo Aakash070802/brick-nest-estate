@@ -1,7 +1,6 @@
 import axios from "axios";
 import { store } from "../redux/store";
-import { loginFailure } from "../redux/features/userSlice";
-import { setGlobalLoading } from "../redux/features/userSlice";
+import { loginFailure, setGlobalLoading } from "../redux/features/userSlice";
 
 // create instance
 const api = axios.create({
@@ -9,7 +8,28 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// response interceptors
+/**
+ * REQUEST INTERCEPTOR
+ * Start global loader
+ */
+api.interceptors.request.use(
+  (config) => {
+    // allow skipping loader for specific requests
+    if (!config._skipLoader) {
+      store.dispatch(setGlobalLoading(true));
+    }
+    return config;
+  },
+  (error) => {
+    store.dispatch(setGlobalLoading(false));
+    return Promise.reject(error);
+  },
+);
+
+/**
+ * RESPONSE INTERCEPTOR
+ * Stop loader + handle token refresh
+ */
 api.interceptors.response.use(
   (res) => {
     store.dispatch(setGlobalLoading(false));
@@ -20,6 +40,7 @@ api.interceptors.response.use(
 
     const originalRequest = error.config;
 
+    // prevent infinite retry loop
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -39,4 +60,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
 export default api;

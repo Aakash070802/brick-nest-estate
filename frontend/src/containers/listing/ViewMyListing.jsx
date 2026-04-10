@@ -59,10 +59,10 @@ const ViewMyListing = () => {
     <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-foreground)]">
-              My Listings
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--color-foreground)]">
+              My Properties
             </h1>
             <p className="text-[var(--color-muted-foreground)]">
               Manage your properties
@@ -74,7 +74,7 @@ const ViewMyListing = () => {
             className="px-5 py-2 rounded-xl font-medium 
             text-[var(--color-primary-foreground)] 
             bg-[var(--color-chart-5)] 
-            hover:opacity-90 transition cursor-pointer"
+            hover:opacity-90 transition"
           >
             + Create
           </button>
@@ -82,15 +82,15 @@ const ViewMyListing = () => {
 
         {/* CONTENT */}
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
               <ListingSkeleton key={i} />
             ))}
           </div>
         ) : listings.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-[var(--color-muted-foreground)]">
-              You have no listings yet.
+          <div className="text-center py-24">
+            <p className="text-[var(--color-muted-foreground)] text-lg">
+              You have no properties yet.
             </p>
           </div>
         ) : (
@@ -99,11 +99,9 @@ const ViewMyListing = () => {
             animate="visible"
             variants={{
               hidden: {},
-              visible: {
-                transition: { staggerChildren: 0.08 },
-              },
+              visible: { transition: { staggerChildren: 0.08 } },
             }}
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-5 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           >
             {listings.map((listing) => (
               <ListingCards

@@ -34,7 +34,7 @@ const ProfileForm = ({ form, setForm, handleUpdate, loading }) => {
         transition={{ type: "spring", stiffness: 200 }}
         value={form.username}
         onChange={(e) => setForm({ ...form, username: e.target.value })}
-        className="p-3 rounded-xl border outline-none"
+        className="input"
         placeholder="Username"
       />
 
@@ -46,18 +46,22 @@ const ProfileForm = ({ form, setForm, handleUpdate, loading }) => {
         transition={{ type: "spring", stiffness: 200 }}
         value={form.email}
         onChange={(e) => setForm({ ...form, email: e.target.value })}
-        className="p-3 rounded-xl border outline-none"
+        className="input"
         placeholder="Email"
       />
 
-      {/* Button */}
+      {/* PRIMARY ACTION */}
       <motion.button
         variants={itemVariants}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         onClick={handleUpdate}
-        className="p-3 rounded-xl text-white cursor-pointer"
-        style={{ background: "var(--gradient-primary)" }}
+        disabled={loading}
+        className="p-3 rounded-xl font-medium 
+        text-[var(--color-primary-foreground)] 
+        bg-[var(--color-primary)] 
+        hover:opacity-90 transition
+        disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Updating..." : "Save Changes"}
       </motion.button>

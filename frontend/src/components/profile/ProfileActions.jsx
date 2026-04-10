@@ -4,18 +4,12 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.12,
-    },
+    transition: { staggerChildren: 0.12 },
   },
 };
 
 const buttonVariants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-    scale: 0.95,
-  },
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
@@ -36,32 +30,44 @@ const ProfileActions = ({ onPassword, onDelete, onCreateListing }) => {
       initial="hidden"
       animate="visible"
     >
+      {/* CREATE LISTING (SUCCESS) */}
       <motion.button
         variants={buttonVariants}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onPassword}
-        className="p-3 rounded-xl bg-slate-800 cursor-pointer text-white"
-      >
-        Change Password
-      </motion.button>
-
-      <motion.button
-        variants={buttonVariants}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         onClick={onCreateListing}
-        className="p-3 bg-green-500 cursor-pointer text-white rounded-xl hover:bg-green-700 transition-colors"
+        className="p-3 rounded-xl font-medium 
+        text-[var(--color-primary-foreground)] 
+        bg-[var(--color-chart-5)] 
+        hover:opacity-90 transition"
       >
         Create Listing
       </motion.button>
 
+      {/* CHANGE PASSWORD (SECONDARY) */}
       <motion.button
         variants={buttonVariants}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        onClick={onPassword}
+        className="p-3 rounded-xl font-medium 
+        text-[var(--color-secondary-foreground)] 
+        bg-[var(--color-chart-2)] 
+        hover:opacity-90 transition"
+      >
+        Change Password
+      </motion.button>
+
+      {/* DELETE ACCOUNT (DESTRUCTIVE) */}
+      <motion.button
+        variants={buttonVariants}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
         onClick={onDelete}
-        className="p-3 cursor-pointer bg-red-500 text-white rounded-xl hover:bg-red-700 transition-colors"
+        className="p-3 rounded-xl font-medium 
+        text-[var(--color-destructive-foreground)] 
+        bg-[var(--color-destructive)] 
+        hover:opacity-90 transition"
       >
         Delete Account
       </motion.button>

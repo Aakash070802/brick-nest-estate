@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import Modal from "../common/Modal";
+import { AlertTriangle } from "lucide-react";
 
 const backdrop = {
   hidden: { opacity: 0 },
@@ -32,29 +32,64 @@ const DeleteModal = ({ open, onClose, onConfirm }) => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
         >
-          <motion.div variants={modalAnim}>
-            <Modal onClose={onClose}>
-              <h3 className="text-red-500 font-semibold mb-3">
-                Delete Account?
-              </h3>
-
-              <p className="text-sm mb-4">This action cannot be undone.</p>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={onConfirm}
-                  className="flex-1 bg-red-500 text-white p-2 rounded"
-                >
-                  Delete
-                </button>
-
-                <button onClick={onClose} className="flex-1 border p-2 rounded">
-                  Cancel
-                </button>
+          <motion.div
+            variants={modalAnim}
+            className="w-[92%] sm:w-[420px] max-h-[90vh] overflow-y-auto
+            bg-[var(--color-card)]
+            text-[var(--color-foreground)]
+            rounded-2xl shadow-xl p-6"
+          >
+            {/* ICON */}
+            <div className="flex justify-center mb-4">
+              <div
+                className="p-3 rounded-full"
+                style={{ background: "var(--color-destructive)/15" }}
+              >
+                <AlertTriangle
+                  size={28}
+                  className="text-[var(--color-destructive)]"
+                />
               </div>
-            </Modal>
+            </div>
+
+            {/* TITLE */}
+            <h3 className="text-center text-lg font-semibold mb-2">
+              Delete Account
+            </h3>
+
+            {/* MESSAGE */}
+            <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-5">
+              This action is permanent. All your data will be removed and cannot
+              be recovered.
+            </p>
+
+            {/* ACTIONS */}
+            <div className="flex gap-3">
+              {/* DELETE */}
+              <button
+                onClick={onConfirm}
+                className="flex-1 p-2.5 rounded-lg font-medium
+                text-[var(--color-destructive-foreground)]
+                bg-[var(--color-destructive)]
+                hover:opacity-90 transition"
+              >
+                Delete
+              </button>
+
+              {/* CANCEL */}
+              <button
+                onClick={onClose}
+                className="flex-1 p-2.5 rounded-lg font-medium
+                border border-[var(--color-border)]
+                text-[var(--color-foreground)]
+                bg-[var(--color-card)]
+                hover:bg-[var(--color-muted)] transition"
+              >
+                Cancel
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}
