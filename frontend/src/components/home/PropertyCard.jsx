@@ -1,17 +1,18 @@
 import { motion } from "framer-motion";
 import { FaHeart, FaBed, FaBath } from "react-icons/fa";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toggleFavorite } from "../../services/listingService";
+import { toggleFavoriteLocal } from "../../redux/features/userSlice";
 import { toast } from "react-toastify";
 import { useTheme } from "../../hooks/useTheme";
 
 const PropertyCard = ({ listing }) => {
   const { currentUser } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { theme } = useTheme();
 
-  // ✅ FIX ObjectId comparison
   const isFavorite = currentUser?.favorites?.some(
     (favId) => favId.toString() === listing._id.toString(),
   );
@@ -19,15 +20,15 @@ const PropertyCard = ({ listing }) => {
   const handleSave = async (e) => {
     e.stopPropagation();
 
+    dispatch(toggleFavoriteLocal(listing._id));
+
     try {
       await toggleFavorite(listing._id);
-      toast.success("Updated favorites");
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  // THEME BASED SHADOW
   const shadowStyle =
     theme === "dark"
       ? "shadow-[0_10px_30px_rgba(255,255,255,0.08)] hover:shadow-[0_20px_50px_rgba(255,255,255,0.12)]"

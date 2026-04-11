@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getListingById, toggleFavorite } from "../services/listingService";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleFavoriteLocal } from "../redux/features/userSlice";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { FaHeart, FaBed, FaBath, FaCar, FaCouch } from "react-icons/fa";
@@ -32,6 +33,12 @@ const PropertyDetails = () => {
 
   const [listing, setListing] = useState(null);
 
+  const dispatch = useDispatch();
+
+  const isFavorite = currentUser?.favorites?.some(
+    (fav) => fav.toString() === id.toString(),
+  );
+
   useEffect(() => {
     const fetch = async () => {
       const data = await getListingById(id);
@@ -47,9 +54,10 @@ const PropertyDetails = () => {
       return;
     }
 
+    dispatch(toggleFavoriteLocal(id));
+
     try {
       await toggleFavorite(id);
-      toast.success("Updated favorites");
     } catch (err) {
       toast.error(err.message);
     }
@@ -70,14 +78,14 @@ const PropertyDetails = () => {
       className="min-h-screen bg-[var(--color-background)] p-4 md:p-6"
     >
       <div className="max-w-6xl mx-auto">
-        {/* 🔥 IMAGE CAROUSEL */}
+        {/* IMAGE CAROUSEL */}
         <motion.div variants={itemVariants} className="mb-6">
           <motion.div whileHover={{ scale: 1.01 }}>
             <Carousel images={listing.imageUrls} />
           </motion.div>
         </motion.div>
 
-        {/* 🔥 HEADER */}
+        {/* HEADER */}
         <motion.div
           variants={itemVariants}
           className="flex flex-col md:flex-row md:justify-between md:items-start gap-4"
@@ -99,12 +107,12 @@ const PropertyDetails = () => {
             className="flex items-center gap-2 px-4 py-2 rounded-xl 
             bg-[var(--color-accent)] text-[var(--color-accent-foreground)]"
           >
-            <FaHeart />
-            Save
+            <FaHeart className={isFavorite ? "text-red-500" : ""} />
+            {isFavorite ? "Saved" : "Save"}
           </motion.button>
         </motion.div>
 
-        {/* 🔥 PRICE */}
+        {/* PRICE */}
         <motion.div
           variants={itemVariants}
           className="mt-4 text-3xl font-bold text-[var(--color-primary)]"
@@ -115,7 +123,7 @@ const PropertyDetails = () => {
             : "N/A"}
         </motion.div>
 
-        {/* 🔥 BADGES */}
+        {/* BADGES */}
         <motion.div
           variants={itemVariants}
           className="flex flex-wrap gap-2 mt-4"
@@ -143,7 +151,7 @@ const PropertyDetails = () => {
           )}
         </motion.div>
 
-        {/* 🔥 FEATURE CARDS */}
+        {/* FEATURE CARDS */}
         <motion.div
           variants={itemVariants}
           className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4"
@@ -195,7 +203,7 @@ const PropertyDetails = () => {
           </motion.div>
         </motion.div>
 
-        {/* 🔥 DESCRIPTION */}
+        {/* DESCRIPTION */}
         <motion.div variants={itemVariants} className="mt-8">
           <h2 className="text-lg font-semibold mb-2 text-[var(--color-foreground)]">
             Description
@@ -206,7 +214,7 @@ const PropertyDetails = () => {
           </p>
         </motion.div>
 
-        {/* 🔥 META INFO */}
+        {/* META INFO */}
         <motion.div
           variants={itemVariants}
           className="mt-6 text-sm text-[var(--color-muted-foreground)]"

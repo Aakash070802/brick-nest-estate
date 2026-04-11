@@ -56,6 +56,24 @@ const userSlice = createSlice({
     setGlobalLoading: (state, action) => {
       state.globalLoading = action.payload;
     },
+
+    toggleFavoriteLocal: (state, action) => {
+      if (!state.currentUser) return;
+
+      const listingId = action.payload;
+
+      const exists = state.currentUser.favorites.some(
+        (fav) => fav.toString() === listingId.toString(),
+      );
+
+      if (exists) {
+        state.currentUser.favorites = state.currentUser.favorites.filter(
+          (fav) => fav.toString() !== listingId.toString(),
+        );
+      } else {
+        state.currentUser.favorites.push(listingId);
+      }
+    },
   },
 });
 
@@ -69,6 +87,7 @@ export const {
   deleteUserSuccess,
   logOutUserSuccess,
   setGlobalLoading,
+  toggleFavoriteLocal,
 } = userSlice.actions;
 
 export default userSlice.reducer;

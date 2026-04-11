@@ -15,7 +15,9 @@ const Favorites = () => {
         const allListings = await getAllListings();
 
         const favListings = allListings.filter((listing) =>
-          currentUser?.favorites?.includes(listing._id),
+          currentUser?.favorites?.some(
+            (fav) => fav.toString() === listing._id.toString(),
+          ),
         );
 
         setFavorites(favListings);
