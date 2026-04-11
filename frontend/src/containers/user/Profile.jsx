@@ -13,18 +13,28 @@ import {
 } from "../../services/userService";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { FaHeart, FaUser, FaList } from "react-icons/fa";
 
 import ProfileHeader from "../../components/profile/ProfileHeader";
 import ProfileForm from "../../components/profile/ProfileForm";
 import ProfileActions from "../../components/profile/ProfileActions";
 import PasswordModal from "../../components/profile/PasswordModal";
 import DeleteModal from "../../components/profile/DeleteModal";
+import ProfileSkeleton from "../../components/profile/ProfileSkeleton";
+
+const tabs = [
+  { id: "profile", label: "Profile", icon: <FaUser /> },
+  { id: "favorites", label: "Favorites", icon: <FaHeart /> },
+  { id: "listings", label: "Properties", icon: <FaList /> },
+];
 
 const Profile = () => {
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fileRef = useRef(null);
+
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [form, setForm] = useState({ username: "", email: "" });
   const [passwords, setPasswords] = useState({
@@ -99,49 +109,73 @@ const Profile = () => {
   if (!currentUser) return <ProfileSkeleton />;
 
   return (
-    <div className="min-h-screen flex justify-center px-4 py-10 bg-[var(--color-background)]">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md 
-        bg-[var(--color-card)] 
-        border border-[var(--color-border)] 
-        rounded-2xl p-6 
-        shadow-lg"
-      >
-        {/* HEADER */}
-        <ProfileHeader
-          user={currentUser}
-          fileRef={fileRef}
-          handleAvatar={handleAvatar}
-        />
+    <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
+      <div className="max-w-5xl mx-auto">
+        {/* HEADER + TABS */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="text-xl font-semibold text-[var(--color-foreground)]">
+            My Account
+          </h1>
 
-        {/* FORM */}
-        <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
-          <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)] mb-3">
-            Profile Info
-          </h3>
+          {/* TABS */}
+          <div className="flex gap-2 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
 
-          <ProfileForm
-            form={form}
-            setForm={setForm}
-            handleUpdate={handleUpdate}
-            loading={loading}
-          />
+                  if (tab.id === "favorites") navigate("/favorites");
+                  if (tab.id === "listings") navigate("/view-my-lists");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm whitespace-nowrap transition cursor-pointer
+                ${
+                  activeTab === tab.id
+                    ? "bg-[var(--color-primary)] text-[var(--color-primary-foreground)]"
+                    : "bg-[var(--color-card)] text-[var(--color-muted-foreground)] border border-[var(--color-border)]"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* ACTIONS */}
-        <div className="mt-6 pt-5 border-t border-[var(--color-border)]">
-          <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)] mb-3">
-            Actions
-          </h3>
+        {/* CARD */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-6 shadow-lg"
+        >
+          {/* PROFILE TAB */}
+          {activeTab === "profile" && (
+            <>
+              <ProfileHeader
+                user={currentUser}
+                fileRef={fileRef}
+                handleAvatar={handleAvatar}
+              />
 
-          <ProfileActions
-            onPassword={() => setShowPasswordModal(true)}
-            onDelete={() => setShowDeleteModal(true)}
-            onCreateListing={() => navigate("/view-my-lists")}
-          />
-        </div>
+              <div className="mt-6 border-t border-[var(--color-border)] pt-5">
+                <ProfileForm
+                  form={form}
+                  setForm={setForm}
+                  handleUpdate={handleUpdate}
+                  loading={loading}
+                />
+              </div>
+
+              <div className="mt-6 border-t border-[var(--color-border)] pt-5">
+                <ProfileActions
+                  onPassword={() => setShowPasswordModal(true)}
+                  onDelete={() => setShowDeleteModal(true)}
+                  onCreateListing={() => navigate("/view-my-lists")}
+                />
+              </div>
+            </>
+          )}
+        </motion.div>
 
         {/* MODALS */}
         <PasswordModal
@@ -157,7 +191,7 @@ const Profile = () => {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDelete}
         />
-      </motion.div>
+      </div>
     </div>
   );
 };

@@ -30,20 +30,6 @@ const ProfileActions = ({ onPassword, onDelete, onCreateListing }) => {
       initial="hidden"
       animate="visible"
     >
-      {/* CREATE LISTING (SUCCESS) */}
-      <motion.button
-        variants={buttonVariants}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
-        onClick={onCreateListing}
-        className="p-3 rounded-xl font-medium 
-        text-[var(--color-primary-foreground)] 
-        bg-[var(--color-chart-5)] 
-        hover:opacity-90 transition"
-      >
-        Create Listing
-      </motion.button>
-
       {/* CHANGE PASSWORD (SECONDARY) */}
       <motion.button
         variants={buttonVariants}
