@@ -90,7 +90,6 @@ const Login = () => {
       const data = await loginUser(formData);
       dispatch(loginSuccess(data.data));
       toast.success("Welcome");
-      navigate("/");
     } catch (err) {
       if (err.message === "ACCOUNT_DEACTIVATED") {
         setShowRestoreModal(true);
@@ -256,24 +255,6 @@ const Login = () => {
     const s = String(sec % 60).padStart(2, "0");
     return `${m}:${s}`;
   };
-
-  useEffect(() => {
-    const pending = localStorage.getItem("pendingFavorite");
-
-    if (pending) {
-      const addFav = async () => {
-        try {
-          await toggleFavorite(pending);
-          toast.success("Added to favorites ❤️");
-          localStorage.removeItem("pendingFavorite");
-        } catch (err) {
-          console.log(err);
-        }
-      };
-
-      addFav();
-    }
-  }, []);
 
   return (
     <>

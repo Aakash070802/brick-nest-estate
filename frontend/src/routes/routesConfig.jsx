@@ -12,6 +12,7 @@ import UpdateListingForm from "../components/listing/UpdateListingForm";
 import DeleteListingModal from "../components/listing/DeleteListingModal";
 import CreateListingForm from "../components/listing/CreateListingForm";
 import PropertyDetails from "../containers/PropertyDetails";
+import Favorites from "../containers/Favorites";
 
 import Search from "../containers/Search";
 
@@ -32,6 +33,7 @@ export const routes = [
       { path: "/register", element: <Register /> },
       { path: "/search", element: <Search /> },
       { path: "/listing/:id", element: <PropertyDetails /> },
+      { path: "/favorites", element: <Favorites /> },
       { path: "*", element: <NotFound /> },
 
       // PROTECTED
