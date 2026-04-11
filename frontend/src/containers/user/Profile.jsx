@@ -19,7 +19,6 @@ import ProfileForm from "../../components/profile/ProfileForm";
 import ProfileActions from "../../components/profile/ProfileActions";
 import PasswordModal from "../../components/profile/PasswordModal";
 import DeleteModal from "../../components/profile/DeleteModal";
-import ProfileSkeleton from "../../components/skeletons/ProfileSkeleton";
 
 const Profile = () => {
   const { currentUser } = useSelector((state) => state.user);

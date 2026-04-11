@@ -21,6 +21,7 @@ import Modal from "../../components/common/Modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toggleFavorite } from "../../services/listingService";
 
 const backdrop = {
   hidden: { opacity: 0 },
@@ -255,6 +256,24 @@ const Login = () => {
     const s = String(sec % 60).padStart(2, "0");
     return `${m}:${s}`;
   };
+
+  useEffect(() => {
+    const pending = localStorage.getItem("pendingFavorite");
+
+    if (pending) {
+      const addFav = async () => {
+        try {
+          await toggleFavorite(pending);
+          toast.success("Added to favorites ❤️");
+          localStorage.removeItem("pendingFavorite");
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+      addFav();
+    }
+  }, []);
 
   return (
     <>

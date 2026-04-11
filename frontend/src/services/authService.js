@@ -77,7 +77,7 @@ export const logoutAllDevices = async () => {
   }
 };
 
-// REQUEST OTP
+// REQUEST OTP FOR RESTORE
 export const requestRestore = async (email) => {
   try {
     const res = await api.post("/auth/request-restore-account", { email });
@@ -87,7 +87,7 @@ export const requestRestore = async (email) => {
   }
 };
 
-// VERIFY OTP
+// VERIFY OTP FOR RESTORE
 export const verifyRestore = async (email, otp) => {
   try {
     const res = await api.post("/auth/verify-restore-account", {
@@ -100,13 +100,13 @@ export const verifyRestore = async (email, otp) => {
   }
 };
 
-// REQUEST OTP
+// REQUEST OTP RESET PASSWORD
 export const forgotPasswordRequest = async (email) => {
   const res = await api.post("/auth/forgot-password", { email });
   return res.data;
 };
 
-// VERIFY OTP
+// VERIFY OTP RESET PASSWORD
 export const verifyForgotOtp = async (email, otp) => {
   const res = await api.post("/auth/verify-forgot-password", {
     email,

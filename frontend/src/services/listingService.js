@@ -23,3 +23,18 @@ export const updateListing = async (id, formData) => {
   });
   return res.data.data;
 };
+
+export const getAllListings = async () => {
+  const res = await api.get("/listing/all");
+  return res.data.data;
+};
+
+export const getListingById = async (id) => {
+  const res = await api.get(`/listing/${id}`);
+  return res.data.data;
+};
+
+export const toggleFavorite = async (listingId) => {
+  const res = await api.post("/favorite/toggle", { listingId });
+  return res.data;
+};

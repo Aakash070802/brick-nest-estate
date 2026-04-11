@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { getMyListings, deleteListing } from "../../services/listingService";
 
 import ListingCards from "../../components/listing/ListingCards";
-import ListingSkeleton from "../../components/skeletons/ListingSkeleton";
 
 import CreateListingModal from "../../components/listing/CreateListingModal";
 import UpdateListingModal from "../../components/listing/UpdateListingModal";
@@ -83,9 +82,9 @@ const ViewMyListing = () => {
         {/* CONTENT */}
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <ListingSkeleton key={i} />
-            ))}
+            {/* {Array.from({ length: 8 }).map((_, i) => (
+              // <ListingSkeleton key={i} />
+            ))} */}
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-24">

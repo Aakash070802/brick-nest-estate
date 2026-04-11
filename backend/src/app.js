@@ -27,6 +27,7 @@ app.use(cookieParser());
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
 import listingRouter from "./routes/listing.route.js";
+import favoriteRouter from "./routes/favorite.route.js";
 
 /**
  * - ROUTES
@@ -34,6 +35,7 @@ import listingRouter from "./routes/listing.route.js";
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/listing", listingRouter);
+app.use("/api/favorite", favoriteRouter);
 app.use(errorMiddleware);
 
 export { app };

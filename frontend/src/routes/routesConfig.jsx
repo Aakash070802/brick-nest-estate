@@ -7,11 +7,11 @@ import Register from "../containers/auth/Register";
 
 import Profile from "../containers/user/Profile";
 
-import Listing from "../containers/listing/Listing";
 import ViewMyListing from "../containers/listing/ViewMyListing";
 import UpdateListingForm from "../components/listing/UpdateListingForm";
 import DeleteListingModal from "../components/listing/DeleteListingModal";
 import CreateListingForm from "../components/listing/CreateListingForm";
+import PropertyDetails from "../containers/PropertyDetails";
 
 import Search from "../containers/Search";
 
@@ -31,7 +31,7 @@ export const routes = [
       { path: "/login", element: <Login /> },
       { path: "/register", element: <Register /> },
       { path: "/search", element: <Search /> },
-      { path: "/listing/:listingId", element: <Listing /> },
+      { path: "/listing/:id", element: <PropertyDetails /> },
       { path: "*", element: <NotFound /> },
 
       // PROTECTED

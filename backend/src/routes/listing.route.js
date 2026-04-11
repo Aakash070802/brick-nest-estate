@@ -4,6 +4,7 @@ import {
   createListing,
   deleteListing,
   getAllListings,
+  getListingById,
   getUserListings,
   updateListing,
 } from "../controller/listing.controller.js";
@@ -30,6 +31,11 @@ router.route("/my-lists").get(authMiddleware, getUserListings);
  * @GET /api/listing/all
  */
 router.route("/all").get(getAllListings);
+
+/**
+ * @GET /api/listing/:id
+ */
+router.route("/:id").get(getListingById);
 
 /**
  * @DELETE /api/listing/my-lists/:listId

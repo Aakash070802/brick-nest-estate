@@ -159,6 +159,23 @@ const getAllListings = async (req, res) => {
 };
 
 /**
+ * @private getListingById
+ * @description Retrieves a single listing by ID
+ * @GET /api/listing/:id
+ */
+const getListingById = async (req, res) => {
+  const { id } = req.params;
+
+  const listing = await Listing.findById(id);
+
+  if (!listing) {
+    throw new ApiError(404, "Listing not found");
+  }
+
+  return res.json(new ApiResponse(200, "Listing fetched", listing));
+};
+
+/**
  * @private deleteListing
  * @description Deletes a listing by ID, only if the authenticated user is the owner
  * @DELETE /api/listing/my-lists/:listId
@@ -201,6 +218,11 @@ const deleteListing = async (req, res) => {
     .json(new ApiResponse(200, null, "Property deleted successfully"));
 };
 
+/**
+ * @private updateListing
+ * @description Updates a listing by ID, only if the authenticated user is the owner. Supports updating fields and managing images (keep existing, add new, delete removed).
+ * @PATCH /api/listing/my-lists/:listId
+ */
 const updateListing = async (req, res) => {
   const { listId } = req.params;
   const userId = req.user?._id;
@@ -312,6 +334,7 @@ export {
   createListing,
   getUserListings,
   getAllListings,
+  getListingById,
   deleteListing,
   updateListing,
 };

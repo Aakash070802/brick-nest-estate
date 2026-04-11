@@ -40,6 +40,13 @@ const userSchema = new Schema(
       type: String,
     },
 
+    favorites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Listing",
+      },
+    ],
+
     isActive: {
       type: Boolean,
       default: true,
