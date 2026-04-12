@@ -59,6 +59,7 @@ const PropertyDetails = () => {
     try {
       await toggleFavorite(id);
     } catch (err) {
+      dispatch(toggleFavoriteLocal(id));
       toast.error(err.message);
     }
   };

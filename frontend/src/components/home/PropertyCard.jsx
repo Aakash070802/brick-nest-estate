@@ -25,6 +25,7 @@ const PropertyCard = ({ listing }) => {
     try {
       await toggleFavorite(listing._id);
     } catch (err) {
+      dispatch(toggleFavoriteLocal(listing._id));
       toast.error(err.message);
     }
   };

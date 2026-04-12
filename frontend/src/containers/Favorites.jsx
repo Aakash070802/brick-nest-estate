@@ -12,9 +12,9 @@ const Favorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const allListings = await getAllListings();
+        const res = await getAllListings({ page: 1, limit: 100 });
 
-        const favListings = allListings.filter((listing) =>
+        const favListings = res.listings.filter((listing) =>
           currentUser?.favorites?.some(
             (fav) => fav.toString() === listing._id.toString(),
           ),

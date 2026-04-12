@@ -118,8 +118,12 @@ const getAllListings = async (req, res) => {
     furnished,
     parking,
     sort = "createdAt",
-    order = "asc",
+    order = "desc",
   } = req.query;
+
+  const parsedLimit = Math.max(1, Number(limit));
+  const parsedPage = Math.max(1, Number(page));
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const query = {};
 
@@ -148,14 +152,29 @@ const getAllListings = async (req, res) => {
   // sorting
   const sortOrder = order === "asc" ? 1 : -1;
 
-  const property = await Listing.find(query)
-    .sort({ [sort]: sortOrder })
-    .limit(Number(limit))
-    .skip((page - 1) * limit);
+  // PARALLEL QUERIES
+  const [properties, total] = await Promise.all([
+    Listing.find(query)
+      .sort({ [sort]: sortOrder })
+      .limit(parsedLimit)
+      .skip(skip),
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, "Properties Fetched Successfully", property));
+    Listing.countDocuments(query),
+  ]);
+
+  const hasMore = skip + properties.length < total;
+
+  return res.status(200).json(
+    new ApiResponse(200, "Properties Fetched Successfully", {
+      properties,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        hasMore,
+      },
+    })
+  );
 };
 
 /**
