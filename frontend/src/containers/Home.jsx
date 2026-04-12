@@ -3,13 +3,12 @@ import { motion } from "framer-motion";
 import PropertyCard from "../components/home/PropertyCard";
 import PropertyCardSkeleton from "../components/home/PropertyCardSkeleton";
 import { getAllListings } from "../services/listingService";
+import FilterDrawer from "../components/filters/FilterDrawer";
 
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: {
-      staggerChildren: 0.06,
-    },
+    transition: { staggerChildren: 0.06 },
   },
 };
 
@@ -19,7 +18,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.25, ease: "easeOut" },
+    transition: { duration: 0.25 },
   },
 };
 
@@ -29,18 +28,43 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  // NEW FILTERS
+  const [filters, setFilters] = useState({});
+  const [search, setSearch] = useState("");
+
   const observerRef = useRef();
 
-  const fetchListings = async (pageNum = 1) => {
+  const fetchListings = async (pageNum = 1, reset = false) => {
     try {
       setLoading(true);
+
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters).filter(
+          ([key, value]) =>
+            value !== false && value !== "all" && value !== undefined,
+        ),
+      );
 
       const res = await getAllListings({
         page: pageNum,
         limit: 8,
+        search,
+        ...cleanedFilters,
+      });
+      console.log("FILTERS SENT:", cleanedFilters);
+
+      const safeListings = Array.isArray(res.properties) ? res.properties : [];
+
+      setListings((prev) => {
+        if (reset) return safeListings;
+
+        const newItems = safeListings.filter(
+          (item) => !prev.some((p) => p._id === item._id),
+        );
+
+        return [...prev, ...newItems];
       });
 
-      setListings((prev) => [...prev, ...res.listings]);
       setHasMore(res.pagination.hasMore);
     } catch (err) {
       console.error(err);
@@ -49,12 +73,20 @@ const Home = () => {
     }
   };
 
-  // INITIAL LOAD
-  useEffect(() => {
-    fetchListings(1);
-  }, []);
+  const isFirstLoad = useRef(true);
 
-  // OBSERVER
+  useEffect(() => {
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      fetchListings(1, true);
+      return;
+    }
+
+    setPage(1);
+    fetchListings(1, true);
+  }, [filters, search]);
+
+  // INFINITE SCROLL
   const lastElementRef = (node) => {
     if (loading || !hasMore) return;
 
@@ -79,15 +111,18 @@ const Home = () => {
     <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-foreground)]">
+        <div className="flex justify-between items-center mb-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-bold"
+          >
             Explore Properties
-          </h1>
-        </motion.div>
+          </motion.h1>
+
+          {/* FILTER BUTTON */}
+          <FilterDrawer onApply={(newFilters) => setFilters(newFilters)} />
+        </div>
 
         {/* GRID */}
         <motion.div
@@ -95,7 +130,7 @@ const Home = () => {
           initial="hidden"
           animate="visible"
           layout
-          className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          className="grid gap-4 grid-cols-2 md:grid-cols-4"
         >
           {listings.map((item, index) => {
             const isLast = index === listings.length - 1;
@@ -113,7 +148,7 @@ const Home = () => {
           })}
         </motion.div>
 
-        {/* LOADING SKELETON (BOTTOM) */}
+        {/* LOADING */}
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -122,15 +157,10 @@ const Home = () => {
           </div>
         )}
 
-        {/* END */}
         {!hasMore && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center mt-6 text-[var(--color-muted-foreground)]"
-          >
+          <p className="text-center mt-6 text-muted-foreground">
             No more listings
-          </motion.p>
+          </p>
         )}
       </div>
     </div>

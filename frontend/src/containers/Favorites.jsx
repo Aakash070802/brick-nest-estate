@@ -14,7 +14,7 @@ const Favorites = () => {
       try {
         const res = await getAllListings({ page: 1, limit: 100 });
 
-        const favListings = res.listings.filter((listing) =>
+        const favListings = res.properties.filter((listing) =>
           currentUser?.favorites?.some(
             (fav) => fav.toString() === listing._id.toString(),
           ),

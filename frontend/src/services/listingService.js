@@ -38,8 +38,9 @@ export const getAllListings = async ({
       ...filters,
     };
 
-    const { data } = await api.get("/api/listing/all", { params });
+    const { data } = await api.get("/listing/all", { params });
 
+    console.log("API PARAMS:", params);
     return data.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || "Failed to fetch listings");

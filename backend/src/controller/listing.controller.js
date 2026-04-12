@@ -349,6 +349,61 @@ const updateListing = async (req, res) => {
     .json(new ApiResponse(200, updateProperty, "Listing updated successfully"));
 };
 
+/**
+ * @seed seedListing
+ * @description Seeds the database with sample listings for testing and development purposes. This function creates multiple listings with randomized data, including images uploaded to Cloudinary. It is intended to be run once to populate the database with initial data.
+ * @POST /api/listing/seed
+ */
+const seedListings = async (req, res) => {
+  const userId = req.user.id;
+
+  const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const listings = [];
+
+  const cities = ["Raipur", "Bilaspur", "Durg", "Bhilai", "Korba"];
+  const propertyTypes = ["rent", "sell"];
+  const descriptions = [
+    "Spacious and well-ventilated home",
+    "Perfect for families and working professionals",
+    "Prime location with all amenities nearby",
+    "Modern design with great interiors",
+    "Affordable and comfortable living space",
+  ];
+
+  for (let i = 1; i <= 500; i++) {
+    const regularPrice = Math.floor(Math.random() * 50000) + 5000;
+    const hasOffer = Math.random() > 0.5;
+
+    listings.push({
+      name: `Property ${Math.floor(Math.random() * 1000)}`,
+      description: getRandom(descriptions),
+      address: `${getRandom(cities)}, Chhattisgarh`,
+      regularPrice,
+      discountedPrice: hasOffer
+        ? regularPrice - Math.floor(Math.random() * 5000)
+        : undefined,
+      bathrooms: Math.ceil(Math.random() * 4),
+      bedrooms: Math.ceil(Math.random() * 5),
+      furnished: Math.random() > 0.5,
+      parking: Math.random() > 0.5,
+      type: getRandom(propertyTypes),
+      offer: hasOffer,
+      imageUrls: [
+        {
+          url: `https://picsum.photos/400/300?random=${i}`,
+          public_id: `seed_${i}`,
+        },
+      ],
+      userRef: userId,
+    });
+  }
+
+  await Listing.insertMany(listings);
+
+  res.json({ message: "Seeded 500 random listings" });
+};
+
 export {
   createListing,
   getUserListings,
@@ -356,4 +411,5 @@ export {
   getListingById,
   deleteListing,
   updateListing,
+  seedListings,
 };

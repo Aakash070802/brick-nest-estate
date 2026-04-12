@@ -6,6 +6,7 @@ import {
   getAllListings,
   getListingById,
   getUserListings,
+  seedListings,
   updateListing,
 } from "../controller/listing.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
@@ -48,5 +49,10 @@ router.route("/my-lists/:listId").delete(authMiddleware, deleteListing);
 router
   .route("/my-lists/:listId")
   .patch(authMiddleware, upload.array("images", 6), updateListing);
+
+/**
+ * @POST /api/listing/seed
+ */
+router.route("/seed").post(authMiddleware, seedListings);
 
 export default router;
