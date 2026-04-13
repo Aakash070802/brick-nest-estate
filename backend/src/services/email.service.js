@@ -1,62 +1,59 @@
-import { config } from "../config/config.js";
 import nodemailer from "nodemailer";
-import { google } from "googleapis";
-
-const oAuth2Client = new google.auth.OAuth2(
-  config.GOOGLE_CLIENT_ID,
-  config.GOOGLE_CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
-
-oAuth2Client.setCredentials({
-  refresh_token: config.GOOGLE_REFRESH_TOKEN,
-});
-
-const accessToken = await oAuth2Client.getAccessToken();
-/**
- * @function transporter
- * @description Creates a nodemailer transporter object using the email configuration from the config file
- * @returns {Object} A nodemailer transporter object configured with the email service, user, and password
- */
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    type: "OAuth2",
-    user: config.GOOGLE_USER,
-    clientId: config.GOOGLE_CLIENT_ID,
-    clientSecret: config.GOOGLE_CLIENT_SECRET,
-    refreshToken: config.GOOGLE_REFRESH_TOKEN,
-    accessToken: accessToken.token,
-  },
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("Error connecting to email server: ", error);
-  } else {
-    console.log("Email server is ready to send messages");
-  }
-});
+import { config } from "../config/config.js";
 
 /**
- * @function sendEmail
- * @description Sends an email using the nodemailer transporter object
- * @param {string} to - The recipient's email address
- * @param {string} subject - The subject of the email
- * @param {string} text - The plain text content of the email
- * @param {string} html - The HTML content of the email
- * @returns {Promise} A promise that resolves when the email is sent successfully, or rejects with an error if there is a problem sending the email.
+ * Create transporter (lazy, reusable)
  */
-export const sendEmail = async (to, subject, text, html) => {
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: config.GOOGLE_USER,
+      pass: config.GOOGLE_PASS,
+    },
+  });
+};
+
+/**
+ * Verify transporter (optional but useful for startup checks)
+ */
+export const verifyEmailConnection = async () => {
   try {
-    const info = await transporter.sendMail({
-      from: `"Brick Nest App" <${config.GOOGLE_USER}>`,
-      to,
-      subject,
-      text,
-      html,
-    });
+    const transporter = createTransporter();
+    await transporter.verify();
+    console.log("✅ Email server is ready");
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("❌ Email server connection failed:", error.message);
+  }
+};
+
+/**
+ * Send email with retry logic
+ */
+export const sendEmail = async ({ to, subject, text, html, retries = 3 }) => {
+  const transporter = createTransporter();
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"Brick Nest" <${config.GOOGLE_USER}>`,
+        to,
+        subject,
+        text,
+        html,
+      });
+
+      console.log(`📨 Email sent (attempt ${attempt}):`, info.messageId);
+      return info;
+    } catch (error) {
+      console.error(`❌ Email failed (attempt ${attempt}):`, error.message);
+
+      if (attempt === retries) {
+        throw new Error("Email failed after multiple attempts");
+      }
+
+      // simple delay before retry
+      await new Promise((res) => setTimeout(res, 1000 * attempt));
+    }
   }
 };
