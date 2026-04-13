@@ -155,6 +155,10 @@ const getAllListings = async (req, res) => {
   // PARALLEL QUERIES
   const [properties, total] = await Promise.all([
     Listing.find(query)
+      .populate({
+        path: "userRef",
+        select: "username avatar",
+      })
       .sort({ [sort]: sortOrder })
       .limit(parsedLimit)
       .skip(skip),
@@ -185,7 +189,10 @@ const getAllListings = async (req, res) => {
 const getListingById = async (req, res) => {
   const { id } = req.params;
 
-  const listing = await Listing.findById(id);
+  const listing = await Listing.findById(id).populate({
+    path: "userRef",
+    select: "username avatar",
+  });
 
   if (!listing) {
     throw new ApiError(404, "Listing not found");

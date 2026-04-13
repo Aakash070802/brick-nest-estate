@@ -41,8 +41,8 @@ const PropertyCard = ({ listing }) => {
       transition={{ duration: 0.25, ease: "easeOut" }}
       onClick={() => navigate(`/listing/${listing._id}`)}
       className={`cursor-pointer rounded-2xl overflow-hidden 
-      bg-[var(--color-card)] border border-[var(--color-border)] 
-      ${shadowStyle} transition`}
+    bg-[var(--color-card)] border border-[var(--color-border)] 
+    ${shadowStyle} transition`}
     >
       {/* IMAGE */}
       <div className="relative h-48 overflow-hidden">
@@ -55,7 +55,7 @@ const PropertyCard = ({ listing }) => {
         {/* TYPE BADGE */}
         <span
           className="absolute left-3 top-3 px-2 py-1 text-xs rounded-md 
-          bg-[var(--color-chart-1)] text-white shadow"
+        bg-[var(--color-chart-1)] text-white shadow"
         >
           {listing.type === "rent" ? "For Rent" : "For Sale"}
         </span>
@@ -64,7 +64,7 @@ const PropertyCard = ({ listing }) => {
         {listing.offer && (
           <span
             className="absolute left-3 bottom-3 px-2 py-1 text-xs rounded-md 
-            bg-[var(--color-chart-3)] text-black shadow"
+          bg-[var(--color-chart-3)] text-black shadow"
           >
             Offer
           </span>
@@ -84,16 +84,47 @@ const PropertyCard = ({ listing }) => {
       </div>
 
       {/* CONTENT */}
-      <div className="p-4 flex flex-col gap-2">
+      <div className="p-4 flex flex-col gap-3">
+        {/* USER ROW (FIXED UI) */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full overflow-hidden border border-[var(--color-border)] hover:scale-105 transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/profile/${listing.userRef?._id}`);
+              }}
+            >
+              <img
+                src={listing.userRef?.avatar || "/default-user.png"}
+                alt="user"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <span className="text-xs font-medium text-[var(--color-foreground)]">
+              {listing.userRef?.username || "Unknown"}
+            </span>
+          </div>
+
+          {/* subtle time placeholder (future upgrade) */}
+          <span className="text-[10px] text-[var(--color-muted-foreground)]">
+            • just now
+          </span>
+        </div>
+
+        {/* TITLE */}
         <h3 className="text-sm font-semibold text-[var(--color-foreground)] line-clamp-1">
           {listing.name}
         </h3>
 
+        {/* ADDRESS */}
         <p className="text-xs text-[var(--color-muted-foreground)] line-clamp-1">
           {listing.address}
         </p>
 
-        <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)] mt-1">
+        {/* FEATURES */}
+        <div className="flex items-center gap-4 text-xs text-[var(--color-muted-foreground)]">
           <span className="flex items-center gap-1">
             <FaBed /> {listing.bedrooms}
           </span>
@@ -102,6 +133,7 @@ const PropertyCard = ({ listing }) => {
           </span>
         </div>
 
+        {/* PRICE */}
         <div className="mt-2 flex items-center justify-between">
           <p className="text-lg font-bold text-[var(--color-primary)]">
             ₹ {listing.regularPrice?.toLocaleString() || "N/A"}

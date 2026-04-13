@@ -204,15 +204,33 @@ const PropertyDetails = () => {
           </motion.div>
         </motion.div>
 
-        {/* DESCRIPTION */}
+        {/* DESCRIPTION WITH USER */}
         <motion.div variants={itemVariants} className="mt-8">
-          <h2 className="text-lg font-semibold mb-2 text-[var(--color-foreground)]">
+          <h2 className="text-lg font-semibold mb-4 text-[var(--color-foreground)]">
             Description
           </h2>
 
-          <p className="text-[var(--color-muted-foreground)] leading-relaxed">
-            {listing.description}
-          </p>
+          <div className="flex gap-3 items-start">
+            {/* AVATAR */}
+            <div className="w-10 h-10 rounded-full overflow-hidden border border-[var(--color-border)]">
+              <img
+                src={listing.userRef?.avatar || "/default-user.png"}
+                alt="user"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* TEXT */}
+            <div>
+              <p className="text-sm font-semibold text-[var(--color-foreground)]">
+                {listing.userRef?.username || "Unknown User"}
+              </p>
+
+              <p className="text-[var(--color-muted-foreground)] leading-relaxed mt-1">
+                {listing.description}
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* META INFO */}
