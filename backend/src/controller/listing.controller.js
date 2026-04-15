@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import { logActivity } from "../utils/logger.js";
 import { generateEmbedding } from "../utils/embedding.js";
+import { cosineSimilarity } from "../utils/similarity.js";
 
 /**
  * @Helper Build Search Text
@@ -146,11 +147,6 @@ const getUserListings = async (req, res) => {
  * @GET /api/listing/all
  * @query { limit: number, page: number, search: string, type: string, offer: boolean, furnished: boolean, parking: boolean, sort: string, order: string }
  */
-import { Listing } from "../models/listing.model.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { generateEmbedding } from "../utils/embedding.js";
-import { cosineSimilarity } from "../utils/similarity.js";
-
 const getAllListings = async (req, res) => {
   const {
     limit = 10,
