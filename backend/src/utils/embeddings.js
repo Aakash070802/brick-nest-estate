@@ -1,22 +1,34 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import { config } from "../config/config.js";
 
-const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+const openai = new OpenAI({
+  apiKey: config.OPENAI_API_KEY,
+});
 
-/**
- * Generate embedding using Gemini
- */
+const cache = new Map(); // 🔥 cache for performance
+
 export const generateEmbedding = async (text) => {
   try {
     if (!text) return [];
 
-    const model = genAI.getGenerativeModel({
-      model: "text-embedding-004",
+    // ✅ CACHE HIT
+    if (cache.has(text)) {
+      return cache.get(text);
+    }
+
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: text,
     });
 
-    const result = await model.embedContent(text);
+    const vector = response.data[0].embedding;
 
-    return result.embedding.values;
+    // ✅ store in cache
+    cache.set(text, vector);
+
+    console.log("Embedding generated:", vector.length);
+
+    return vector;
   } catch (error) {
     console.error("Embedding error:", error.message);
     return [];

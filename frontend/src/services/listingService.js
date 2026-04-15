@@ -52,13 +52,57 @@ export const getAllListings = async ({
   filters = {},
 } = {}) => {
   try {
+    /**
+     * STEP 1: Normalize search
+     */
+    let normalizedSearch = search?.trim().toLowerCase();
+
+    /**
+     * STEP 2: Basic query shaping (VERY IMPORTANT)
+     * This improves embedding quality without calling AI again
+     */
+    if (normalizedSearch) {
+      // simple replacements (expand intent)
+      normalizedSearch = normalizedSearch
+        .replace(/\b(\d+)\s*bhk\b/g, "$1 bedroom")
+        .replace(/\bcheap\b/g, "low price affordable")
+        .replace(/\bluxury\b/g, "premium high-end")
+        .replace(/\bflat\b/g, "apartment");
+    }
+
+    /**
+     * STEP 3: Prevent useless calls
+     */
+    if (normalizedSearch && normalizedSearch.length < 3) {
+      normalizedSearch = "";
+    }
+
+    /**
+     * STEP 4: Clean filters safely
+     */
+    const cleanedFilters = Object.fromEntries(
+      Object.entries(filters || {}).filter(
+        ([_, value]) =>
+          value !== undefined &&
+          value !== null &&
+          value !== false &&
+          value !== "all",
+      ),
+    );
+
+    /**
+     * STEP 5: Build params
+     */
     const params = {
       page,
       limit,
-      search,
-      ...filters,
+      search: normalizedSearch,
+      ...cleanedFilters,
     };
 
+    /**
+     * 🚀 API CALL
+     */
     const { data } = await api.get("/listing/all", {
       params,
       _skipLoader: true,

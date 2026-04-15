@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import { logActivity } from "../utils/logger.js";
-import { generateEmbedding } from "../utils/embedding.js";
+import { generateEmbedding } from "../utils/embeddings.js";
 import { cosineSimilarity } from "../utils/similarity.js";
 
 /**
@@ -257,8 +257,6 @@ const getAllListings = async (req, res) => {
     })
   );
 };
-
-export { getAllListings };
 
 /**
  * @private getListingById

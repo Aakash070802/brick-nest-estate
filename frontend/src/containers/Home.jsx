@@ -32,11 +32,15 @@ const Home = () => {
 
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const observerRef = useRef();
   const fetchIdRef = useRef(0);
   const isFirstLoad = useRef(true);
 
+  /**
+   * 🚀 FETCH LISTINGS
+   */
   const fetchListings = async (pageNum = 1, reset = false) => {
     try {
       setLoading(true);
@@ -53,7 +57,7 @@ const Home = () => {
       const res = await getAllListings({
         page: pageNum,
         limit: 8,
-        search,
+        search: debouncedSearch,
         filters: cleanedFilters,
       });
 
@@ -80,6 +84,9 @@ const Home = () => {
     }
   };
 
+  /**
+   * 🔄 TRIGGER FETCH ON FILTER / SEARCH
+   */
   useEffect(() => {
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
@@ -89,8 +96,37 @@ const Home = () => {
 
     setPage(1);
     fetchListings(1, true);
-  }, [filters, search]);
+  }, [filters, debouncedSearch]);
 
+  /**
+   * 🔥 IMPROVED DEBOUNCE (NO FLICKER)
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = search.trim();
+
+      if (trimmed.length === 0) {
+        setDebouncedSearch("");
+      } else if (trimmed.length >= 3) {
+        setDebouncedSearch(trimmed);
+      }
+      // 👇 do nothing if 1-2 chars → keep previous results
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /**
+   * 📄 PAGINATION
+   */
+  useEffect(() => {
+    if (page === 1) return;
+    fetchListings(page);
+  }, [page]);
+
+  /**
+   * 👀 INFINITE SCROLL
+   */
   const lastElementRef = (node) => {
     if (loading || !hasMore) return;
 
@@ -106,29 +142,67 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (page === 1) return;
-    fetchListings(page);
-  }, [page]);
-
-  useEffect(() => {
     return () => observerRef.current?.disconnect();
   }, []);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold"
-          >
-            Explore Properties
-          </motion.h1>
+        {/* 🔥 STICKY SEARCH BAR */}
+        <div
+          className="sticky top-0 z-30 backdrop-blur-md 
+          bg-[var(--color-background)]/80 
+          border-b border-[var(--color-border)] 
+          pb-4 mb-6"
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-bold"
+            >
+              Explore Properties
+            </motion.h1>
 
-          <FilterDrawer onApply={(newFilters) => setFilters(newFilters)} />
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {/* 🔍 SEARCH */}
+              <div className="relative w-full md:w-80">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search like: 2BHK near school..."
+                  className="w-full px-4 py-2 pr-10 rounded-xl border
+                  border-[var(--color-border)]
+                  bg-[var(--color-card)]
+                  text-[var(--color-foreground)]
+                  outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2
+                    text-sm text-[var(--color-muted-foreground)]
+                    hover:text-[var(--color-foreground)]"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <FilterDrawer onApply={(newFilters) => setFilters(newFilters)} />
+            </div>
+          </div>
         </div>
+
+        {/* 🔥 SEARCH FEEDBACK */}
+        {debouncedSearch && (
+          <p className="text-sm text-[var(--color-muted-foreground)] mb-3">
+            Showing results for{" "}
+            <span className="font-medium">"{debouncedSearch}"</span>
+          </p>
+        )}
 
         {/* INITIAL LOADING */}
         {initialLoading && (
@@ -139,8 +213,15 @@ const Home = () => {
           </div>
         )}
 
+        {/* EMPTY STATE */}
+        {!initialLoading && listings.length === 0 && (
+          <p className="text-center text-[var(--color-muted-foreground)] mt-10">
+            No properties found. Try a different search.
+          </p>
+        )}
+
         {/* GRID */}
-        {!initialLoading && (
+        {!initialLoading && listings.length > 0 && (
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -165,7 +246,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* PAGINATION LOADER */}
+        {/* LOADING MORE */}
         {loading && !initialLoading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -174,7 +255,7 @@ const Home = () => {
           </div>
         )}
 
-        {!hasMore && !initialLoading && (
+        {!hasMore && !initialLoading && listings.length > 0 && (
           <p className="text-center mt-6 text-muted-foreground">
             No more listings
           </p>
