@@ -146,6 +146,11 @@ const getUserListings = async (req, res) => {
  * @GET /api/listing/all
  * @query { limit: number, page: number, search: string, type: string, offer: boolean, furnished: boolean, parking: boolean, sort: string, order: string }
  */
+import { Listing } from "../models/listing.model.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { generateEmbedding } from "../utils/embedding.js";
+import { cosineSimilarity } from "../utils/similarity.js";
+
 const getAllListings = async (req, res) => {
   const {
     limit = 10,
@@ -163,46 +168,84 @@ const getAllListings = async (req, res) => {
   const parsedPage = Math.max(1, Number(page));
   const skip = (parsedPage - 1) * parsedLimit;
 
-  const query = {};
+  let properties = [];
+  let total = 0;
 
-  // search
-  if (search) {
-    query.name = { $regex: search, $options: "i" };
+  /**
+   * 🔥 COMMON FILTERS (used in both flows)
+   */
+  const baseQuery = {};
+
+  if (type && type !== "all") baseQuery.type = type;
+  if (offer !== undefined) baseQuery.offer = offer === "true";
+  if (furnished !== undefined) baseQuery.furnished = furnished === "true";
+  if (parking !== undefined) baseQuery.parking = parking === "true";
+
+  /**
+   * 🚀 AI SEARCH FLOW
+   */
+  if (search && search.trim() !== "") {
+    // Step 1: Convert query → embedding
+    const queryEmbedding = await generateEmbedding(search);
+
+    // Step 2: Fetch filtered listings
+    const listings = await Listing.find(baseQuery).populate({
+      path: "userRef",
+      select: "username avatar",
+    });
+
+    // ⚠️ Edge case: no data
+    if (!listings.length) {
+      return res.status(200).json(
+        new ApiResponse(200, "No properties found", {
+          properties: [],
+          pagination: {
+            total: 0,
+            page: parsedPage,
+            limit: parsedLimit,
+            hasMore: false,
+          },
+        })
+      );
+    }
+
+    // Step 3: Score using cosine similarity
+    const scoredListings = listings.map((item) => {
+      const score = cosineSimilarity(queryEmbedding, item.embedding || []);
+
+      return { item, score };
+    });
+
+    // Step 4: Sort by similarity (HIGH → LOW)
+    scoredListings.sort((a, b) => b.score - a.score);
+
+    // Step 5: Pagination AFTER ranking
+    total = scoredListings.length;
+
+    const paginatedResults = scoredListings
+      .slice(skip, skip + parsedLimit)
+      .map((entry) => entry.item);
+
+    properties = paginatedResults;
+  } else {
+    /**
+     * 🧠 NORMAL QUERY FLOW (NO SEARCH)
+     */
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    [properties, total] = await Promise.all([
+      Listing.find(baseQuery)
+        .populate({
+          path: "userRef",
+          select: "username avatar",
+        })
+        .sort({ [sort]: sortOrder })
+        .limit(parsedLimit)
+        .skip(skip),
+
+      Listing.countDocuments(baseQuery),
+    ]);
   }
-
-  // filters
-  if (type && type !== "all") {
-    query.type = type;
-  }
-
-  if (offer !== undefined) {
-    query.offer = offer === "true";
-  }
-
-  if (furnished !== undefined) {
-    query.furnished = furnished === "true";
-  }
-
-  if (parking !== undefined) {
-    query.parking = parking === "true";
-  }
-
-  // sorting
-  const sortOrder = order === "asc" ? 1 : -1;
-
-  // PARALLEL QUERIES
-  const [properties, total] = await Promise.all([
-    Listing.find(query)
-      .populate({
-        path: "userRef",
-        select: "username avatar",
-      })
-      .sort({ [sort]: sortOrder })
-      .limit(parsedLimit)
-      .skip(skip),
-
-    Listing.countDocuments(query),
-  ]);
 
   const hasMore = skip + properties.length < total;
 
@@ -218,6 +261,8 @@ const getAllListings = async (req, res) => {
     })
   );
 };
+
+export { getAllListings };
 
 /**
  * @private getListingById
