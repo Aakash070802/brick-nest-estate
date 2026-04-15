@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { logActivity } from "../utils/logger.js";
 
 /**
  * @private toggleFavorite
@@ -27,6 +28,8 @@ const toggleFavorite = async (req, res) => {
   }
 
   await user.save();
+
+  await logActivity(req, userId, "FAVORITES");
 
   return res.json(new ApiResponse(200, "Updated favorites", user.favorites));
 };

@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import { logActivity } from "../utils/logger.js";
 
 /**
  * @private createListing
@@ -76,7 +77,8 @@ const createListing = async (req, res) => {
     imageUrls: uploadedImages,
     userRef: req.user._id,
   });
-  //   console.log(uploadedImages);
+
+  await logActivity(req, user._id, "CREATED_PROPERTY");
 
   return res
     .status(201)
@@ -239,6 +241,8 @@ const deleteListing = async (req, res) => {
   // Delete from DB
   await property.deleteOne();
 
+  await logActivity(req, userId, "PROPERTY_DELETED");
+
   return res
     .status(200)
     .json(new ApiResponse(200, null, "Property deleted successfully"));
@@ -350,6 +354,8 @@ const updateListing = async (req, res) => {
   const updateProperty = await Listing.findByIdAndUpdate(listId, updates, {
     new: true,
   });
+
+  await logActivity(req, userId, "PROPERTY_UPDATED");
 
   return res
     .status(200)
