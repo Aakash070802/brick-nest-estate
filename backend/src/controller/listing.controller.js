@@ -4,6 +4,23 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import { logActivity } from "../utils/logger.js";
+import { generateEmbedding } from "../utils/embedding.js";
+
+/**
+ * @Helper Build Search Text
+ */
+const buildSearchText = (data) => {
+  return `
+    ${data.name}
+    ${data.description}
+    ${data.address}
+    ${data.bedrooms} bedroom
+    ${data.bathrooms} bathroom
+    ${data.furnished ? "furnished" : "unfurnished"}
+    ${data.parking ? "parking available" : ""}
+    ${data.type}
+  `.toLowerCase();
+};
 
 /**
  * @private createListing
@@ -31,6 +48,7 @@ const createListing = async (req, res) => {
   if (!files || files.length === 0) {
     throw new ApiError(400, "Images are required!");
   }
+
   if (
     !name ||
     !description ||
@@ -47,6 +65,7 @@ const createListing = async (req, res) => {
     throw new ApiError(400, "Discounted price must be less than regular price");
   }
 
+  // Upload images
   const uploadedImages = [];
 
   for (const file of files) {
@@ -62,6 +81,21 @@ const createListing = async (req, res) => {
     });
   }
 
+  // Build search text
+  const searchText = buildSearchText({
+    name,
+    description,
+    address,
+    bedrooms,
+    bathrooms,
+    furnished,
+    parking,
+    type,
+  });
+
+  // Generate embedding
+  const embedding = await generateEmbedding(searchText);
+
   const listing = await Listing.create({
     name,
     description,
@@ -76,9 +110,11 @@ const createListing = async (req, res) => {
     offer,
     imageUrls: uploadedImages,
     userRef: req.user._id,
+    searchText,
+    embedding,
   });
 
-  await logActivity(req, user._id, "CREATED_PROPERTY");
+  await logActivity(req, req.user._id, "CREATED_PROPERTY");
 
   return res
     .status(201)
@@ -263,50 +299,55 @@ const updateListing = async (req, res) => {
 
   const property = await Listing.findById(listId);
 
-  // OwnerShip
+  // YOU MISSED THIS BEFORE → crash risk
+  if (!property) {
+    throw new ApiError(404, "Property not found");
+  }
+
+  // Ownership check
   if (property.userRef.toString() !== userId.toString()) {
     throw new ApiError(403, "Not authorized");
   }
 
-  // Parse Keep Images
+  /**
+   * HANDLE IMAGES
+   */
   let keepImages = [];
+
   if (req.body.keepImages) {
     try {
       keepImages = JSON.parse(req.body.keepImages);
-    } catch (error) {
+    } catch {
       throw new ApiError(400, "Invalid keepImages format");
     }
   }
-  // console.log("BODY:", req.body);
 
-  // Old images
   const oldImages = property.imageUrls;
 
-  // Images to delete
   const imagesToDelete = oldImages.filter(
     (oldImg) =>
       !keepImages.some((keepImg) => keepImg.public_id === oldImg.public_id)
   );
 
-  // Delete from cloudinary
   await Promise.all(
     imagesToDelete.map((img) =>
-      deleteFromCloudinary(img.public_id).catch((err) => {
-        console.log("Delete Failed: ", err);
-      })
+      deleteFromCloudinary(img.public_id).catch((err) =>
+        console.log("Delete Failed:", err)
+      )
     )
   );
 
-  // Upload new Images
   let newImages = [];
 
   if (req.files && req.files.length > 0) {
     newImages = await Promise.all(
       req.files.map(async (file) => {
         const result = await uploadOnCloudinary(file.path);
+
         if (!result) {
           throw new ApiError(500, "Image upload failed");
         }
+
         return {
           url: result.secure_url,
           public_id: result.public_id,
@@ -314,11 +355,12 @@ const updateListing = async (req, res) => {
       })
     );
   }
-  // console.log("FILES:", req.files);
 
-  // Final Images
   const finalImages = [...keepImages, ...newImages];
 
+  /**
+   * HANDLE FIELD UPDATES
+   */
   const allowedFields = [
     "name",
     "description",
@@ -351,7 +393,37 @@ const updateListing = async (req, res) => {
 
   updates.imageUrls = finalImages;
 
-  const updateProperty = await Listing.findByIdAndUpdate(listId, updates, {
+  /**
+   * SMART EMBEDDING UPDATE (IMPORTANT)
+   */
+  const searchableFields = [
+    "name",
+    "description",
+    "address",
+    "bedrooms",
+    "bathrooms",
+    "furnished",
+    "parking",
+    "type",
+  ];
+
+  const shouldUpdateEmbedding = searchableFields.some(
+    (field) => updates[field] !== undefined
+  );
+
+  if (shouldUpdateEmbedding) {
+    const mergedData = {
+      ...property.toObject(),
+      ...updates,
+    };
+
+    const searchText = buildSearchText(mergedData);
+
+    updates.searchText = searchText;
+    updates.embedding = await generateEmbedding(searchText);
+  }
+
+  const updatedProperty = await Listing.findByIdAndUpdate(listId, updates, {
     new: true,
   });
 
@@ -359,7 +431,9 @@ const updateListing = async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, updateProperty, "Listing updated successfully"));
+    .json(
+      new ApiResponse(200, updatedProperty, "Listing updated successfully")
+    );
 };
 
 /**
