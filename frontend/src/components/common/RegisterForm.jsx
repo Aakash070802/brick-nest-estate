@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const RegisterForm = ({
   formData,
@@ -14,37 +15,53 @@ const RegisterForm = ({
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const previewUrl = formData.avatar
-    ? URL.createObjectURL(formData.avatar)
-    : "/default-user.png";
+  const previewUrl = useMemo(() => {
+    if (!formData.avatar) return "/default-user.png";
+    return URL.createObjectURL(formData.avatar);
+  }, [formData.avatar]);
 
-  // ✅ VALIDATION
+  useEffect(() => {
+    return () => {
+      if (formData.avatar) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, formData.avatar]);
+
+  // VALIDATION
   const validate = () => {
     const newErrors = {};
 
     if (!formData.username) {
       newErrors.username = "Username is required";
+      toast.error("Username is required");
     }
 
     if (!formData.email) {
       newErrors.email = "Email is required";
+      toast.error("Email is required");
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
+      toast.error("Invalid email format");
     }
 
     if (!formData.password) {
       newErrors.password = "Password is required";
+      toast.error("Password is required");
     } else if (!/^(?=.*[A-Z])(?=.*[\W_]).{6,}$/.test(formData.password)) {
       newErrors.password =
         "Min 6 chars, 1 uppercase, 1 special character required";
+      toast.error("Min 6 chars, 1 uppercase, 1 special character required");
     }
 
-    // ✅ CONFIRM PASSWORD
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Confirm your password";
+      toast.error("Confirm your password");
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+      toast.error("Passwords do not match");
     }
 
     setErrors(newErrors);
@@ -57,6 +74,15 @@ const RegisterForm = ({
     handleSubmit(e);
   };
 
+  // CLEAR ERROR ON CHANGE (better UX)
+  const handleFieldChange = (e) => {
+    handleChange(e);
+
+    if (errors[e.target.id]) {
+      setErrors((prev) => ({ ...prev, [e.target.id]: "" }));
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -30 }}
@@ -67,7 +93,6 @@ const RegisterForm = ({
       p-5 sm:p-8 md:p-10 
       flex flex-col justify-center"
     >
-      {/* Heading */}
       <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-[var(--color-foreground)]">
         Create Account
       </h2>
@@ -95,7 +120,10 @@ const RegisterForm = ({
           id="avatar"
           accept="image/*"
           ref={fileRef}
-          onChange={handleChange}
+          onChange={(e) => {
+            handleFieldChange(e);
+            fileRef.current.value = null; // FIX same file re-upload
+          }}
           hidden
         />
       </div>
@@ -103,7 +131,10 @@ const RegisterForm = ({
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {/* Username */}
         <div>
-          <label className="text-sm text-[var(--color-foreground)]">
+          <label
+            htmlFor="username"
+            className="text-sm text-[var(--color-foreground)]"
+          >
             Username <span className="text-[var(--color-destructive)]">*</span>
           </label>
 
@@ -112,7 +143,7 @@ const RegisterForm = ({
             id="username"
             placeholder="Enter Username"
             value={formData.username}
-            onChange={handleChange}
+            onChange={handleFieldChange}
             className="p-3 rounded-xl w-full 
             bg-[var(--color-card)] 
             border border-[var(--color-border)] 
@@ -131,7 +162,10 @@ const RegisterForm = ({
 
         {/* Email */}
         <div>
-          <label className="text-sm text-[var(--color-foreground)]">
+          <label
+            htmlFor="email"
+            className="text-sm text-[var(--color-foreground)]"
+          >
             Email <span className="text-[var(--color-destructive)]">*</span>
           </label>
 
@@ -140,7 +174,7 @@ const RegisterForm = ({
             id="email"
             placeholder="Enter Email"
             value={formData.email}
-            onChange={handleChange}
+            onChange={handleFieldChange}
             className="p-3 rounded-xl w-full 
             bg-[var(--color-card)] 
             border border-[var(--color-border)] 
@@ -159,7 +193,10 @@ const RegisterForm = ({
 
         {/* Password */}
         <div className="relative">
-          <label className="text-sm text-[var(--color-foreground)]">
+          <label
+            htmlFor="password"
+            className="text-sm text-[var(--color-foreground)]"
+          >
             Password <span className="text-[var(--color-destructive)]">*</span>
           </label>
 
@@ -168,7 +205,7 @@ const RegisterForm = ({
             id="password"
             value={formData.password}
             placeholder="Enter Password"
-            onChange={handleChange}
+            onChange={handleFieldChange}
             className="p-3 pr-10 rounded-xl w-full 
             bg-[var(--color-card)] 
             border border-[var(--color-border)] 
@@ -194,17 +231,20 @@ const RegisterForm = ({
 
         {/* Confirm Password */}
         <div className="relative">
-          <label className="text-sm text-[var(--color-foreground)]">
+          <label
+            htmlFor="confirmPassword"
+            className="text-sm text-[var(--color-foreground)]"
+          >
             Confirm Password{" "}
             <span className="text-[var(--color-destructive)]">*</span>
           </label>
 
           <input
-            type={showPassword ? "text" : "password"}
+            type={showConfirmPassword ? "text" : "password"}
             id="confirmPassword"
             value={formData.confirmPassword || ""}
             placeholder="Re-enter Password"
-            onChange={handleChange}
+            onChange={handleFieldChange}
             className="p-3 rounded-xl w-full 
             bg-[var(--color-card)] 
             border border-[var(--color-border)] 
@@ -213,12 +253,14 @@ const RegisterForm = ({
             focus:ring-2 focus:ring-[var(--color-primary)] 
             transition"
           />
+
           <span
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-3 top-[38px] cursor-pointer text-[var(--color-muted-foreground)]"
           >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
+            {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
+
           {errors.confirmPassword && (
             <p className="text-[var(--color-destructive)] text-xs mt-1">
               {errors.confirmPassword}
@@ -240,7 +282,6 @@ const RegisterForm = ({
         </motion.button>
       </form>
 
-      {/* Footer */}
       <p className="mt-4 text-sm text-[var(--color-muted-foreground)] text-center md:text-left">
         Already have an account?{" "}
         <Link to="/login" className="text-[var(--color-primary)]">
@@ -248,7 +289,6 @@ const RegisterForm = ({
         </Link>
       </p>
 
-      {/* Global Error */}
       {error && (
         <p className="mt-3 text-sm text-[var(--color-destructive)] text-center">
           {error}

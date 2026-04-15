@@ -1,33 +1,64 @@
 import api from "./api";
 
-// Get current user information
+// Centralized response handler
+const handleResponse = (res) => {
+  return res?.data?.data ?? res?.data ?? null;
+};
+
+// Centralized error handler
+const handleError = (err) => {
+  const message =
+    err?.response?.data?.message || err?.message || "Something went wrong";
+
+  throw new Error(message);
+};
+
+// Get current user
 export const getCurrentUser = async () => {
-  const res = await api.get("/user/me");
-  return res.data.data;
+  try {
+    const res = await api.get("/user/me");
+    return handleResponse(res);
+  } catch (err) {
+    handleError(err);
+  }
 };
 
-// Update user information (name, email, etc.)
+// Update user
 export const updateUser = async (data) => {
-  const res = await api.patch("/user/me", data);
-  return res.data.data;
+  try {
+    const res = await api.patch("/user/me", data);
+    return handleResponse(res);
+  } catch (err) {
+    handleError(err);
+  }
 };
 
-// Update user avatar
+// Update avatar
 export const updateAvatar = async (formData) => {
-  const res = await api.patch("/user/me/avatar", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data.data;
+  try {
+    const res = await api.patch("/user/me/avatar", formData);
+    return handleResponse(res);
+  } catch (err) {
+    handleError(err);
+  }
 };
 
-// Change user password
+// Change password
 export const changePassword = async (data) => {
-  const res = await api.patch("/user/me/password", data);
-  return res.data;
+  try {
+    const res = await api.patch("/user/me/password", data);
+    return handleResponse(res);
+  } catch (err) {
+    handleError(err);
+  }
 };
 
-// Delete user account
+// Delete account
 export const deleteAccount = async () => {
-  const res = await api.delete("/user/me");
-  return res.data;
+  try {
+    const res = await api.delete("/user/me");
+    return handleResponse(res);
+  } catch (err) {
+    handleError(err);
+  }
 };

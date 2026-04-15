@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Checkbox from "../ui/Checkbox";
 
 const container = {
   hidden: { opacity: 0, y: 20 },
@@ -16,27 +17,20 @@ const item = {
 };
 
 const UpdateListingForm = ({ form, setForm, onSubmit, loading }) => {
-  const [preview, setPreview] = useState([]);
   const [newImages, setNewImages] = useState([]);
-  const [keepImages, setKeepImages] = useState([]);
+  const [keepImages, setKeepImages] = useState(() => form?.imageUrls || []);
 
-  // INIT DATA
+  // FIXED: memory cleanup for object URLs
   useEffect(() => {
-    if (form?.imageUrls) {
-      setPreview(form.imageUrls);
-      setKeepImages(form.imageUrls);
-    }
-  }, [form]);
+    return () => {
+      newImages.forEach((file) => URL.revokeObjectURL(file));
+    };
+  }, [newImages]);
 
-  // INPUT CHANGE
+  // INPUT CHANGE (no checkbox logic anymore)
   const handleChange = (e) => {
-    const { id, value, type, checked } = e.target;
-
-    if (type === "checkbox") {
-      setForm({ ...form, [id]: checked });
-    } else {
-      setForm({ ...form, [id]: value });
-    }
+    const { id, value } = e.target;
+    setForm({ ...form, [id]: value });
   };
 
   // IMAGE ADD
@@ -58,21 +52,18 @@ const UpdateListingForm = ({ form, setForm, onSubmit, loading }) => {
     }
   };
 
-  // SUBMIT (IMPORTANT)
+  // SUBMIT
   const handleSubmit = () => {
     const data = new FormData();
 
-    // append fields
     Object.keys(form).forEach((key) => {
       if (key !== "imageUrls") {
         data.append(key, form[key]);
       }
     });
 
-    // keep images
     data.append("keepImages", JSON.stringify(keepImages));
 
-    // new images
     newImages.forEach((file) => {
       data.append("images", file);
     });
@@ -224,37 +215,31 @@ const UpdateListingForm = ({ form, setForm, onSubmit, loading }) => {
         </div>
       )}
 
-      {/* CHECKBOX */}
-      <div className="flex flex-wrap gap-4 md:col-span-2 text-sm text-[var(--color-foreground)]">
-        <label>
-          <input
-            type="checkbox"
-            id="furnished"
+      {/* ✅ CUSTOM CHECKBOX SYSTEM */}
+      <div className="flex flex-wrap gap-6 md:col-span-2 text-sm text-[var(--color-foreground)]">
+        <div className="flex items-center gap-2">
+          <Checkbox
             checked={form.furnished || false}
-            onChange={handleChange}
-          />{" "}
-          Furnished
-        </label>
+            onChange={(val) => setForm({ ...form, furnished: val })}
+          />
+          <span>Furnished</span>
+        </div>
 
-        <label>
-          <input
-            type="checkbox"
-            id="parking"
+        <div className="flex items-center gap-2">
+          <Checkbox
             checked={form.parking || false}
-            onChange={handleChange}
-          />{" "}
-          Parking
-        </label>
+            onChange={(val) => setForm({ ...form, parking: val })}
+          />
+          <span>Parking</span>
+        </div>
 
-        <label>
-          <input
-            type="checkbox"
-            id="offer"
+        <div className="flex items-center gap-2">
+          <Checkbox
             checked={form.offer || false}
-            onChange={handleChange}
-          />{" "}
-          Offer
-        </label>
+            onChange={(val) => setForm({ ...form, offer: val })}
+          />
+          <span>Offer</span>
+        </div>
       </div>
 
       {/* BUTTON */}

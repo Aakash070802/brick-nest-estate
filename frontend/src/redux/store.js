@@ -1,37 +1,45 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import userReducer from "./features/userSlice";
 
-import { persistReducer, persistStore } from "redux-persist";
-import storage from "./persist";
+import { persistReducer, persistStore, createTransform } from "redux-persist";
+import storage from "./persist"; // use default
 
 const rootReducer = combineReducers({
   user: userReducer,
 });
+
+const userTransform = createTransform(
+  (inboundState) => ({
+    currentUser: inboundState.currentUser, // only persist useful data
+  }),
+  (outboundState) => ({
+    ...outboundState,
+    authLoading: false,
+    globalLoading: false,
+    listingLoading: false,
+    error: null,
+  }),
+  { whitelist: ["user"] },
+);
 
 const persistConfig = {
   key: "root",
   storage,
   version: 1,
   whitelist: ["user"],
-  transforms: [
-    {
-      in: (state) => ({
-        ...state,
-        loading: false, // never persist loading
-        error: null, // optional reset
-      }),
-      out: (state) => state,
-    },
-  ],
+  transforms: [userTransform],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
+  devTools: import.meta.env.MODE !== "production",
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+      },
     }),
 });
 

@@ -1,14 +1,27 @@
 const storage = {
-  getItem: (key) => {
-    return Promise.resolve(localStorage.getItem(key));
+  getItem: async (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch (err) {
+      console.error("Storage getItem error:", err);
+      return null;
+    }
   },
-  setItem: (key, value) => {
-    localStorage.setItem(key, value);
-    return Promise.resolve();
+
+  setItem: async (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (err) {
+      console.error("Storage setItem error:", err);
+    }
   },
-  removeItem: (key) => {
-    localStorage.removeItem(key);
-    return Promise.resolve();
+
+  removeItem: async (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (err) {
+      console.error("Storage removeItem error:", err);
+    }
   },
 };
 

@@ -4,9 +4,7 @@ import { app } from "../firebase";
 
 const handleError = (error) => {
   const message =
-    error?.response?.data?.message || // -> backend message
-    error?.message ||
-    "Something went wrong";
+    error?.response?.data?.message || error?.message || "Something went wrong";
 
   throw new Error(message);
 };
@@ -14,10 +12,11 @@ const handleError = (error) => {
 // LOGIN
 export const loginUser = async (formData) => {
   try {
-    const res = await api.post("/auth/login", formData);
+    const res = await api.post("/auth/login", formData, {
+      _skipLoader: true, // 🔥 IMPORTANT
+    });
     return res.data;
   } catch (error) {
-    // console.log("BACKEND ERROR:", error.response?.data);
     handleError(error);
   }
 };
@@ -25,10 +24,11 @@ export const loginUser = async (formData) => {
 // REGISTER
 export const registerUser = async (formData) => {
   try {
-    const res = await api.post("/auth/register", formData);
+    const res = await api.post("/auth/register", formData, {
+      _skipLoader: true,
+    });
     return res.data;
   } catch (error) {
-    // console.log("BACKEND ERROR:", error.response?.data);
     handleError(error);
   }
 };
@@ -41,23 +41,28 @@ export const loginWithGoogle = async () => {
 
     const result = await signInWithPopup(auth, provider);
 
-    const res = await api.post("/auth/google", {
-      name: result.user.displayName,
-      email: result.user.email,
-    });
+    const res = await api.post(
+      "/auth/google",
+      {
+        name: result.user.displayName,
+        email: result.user.email,
+      },
+      {
+        _skipLoader: true,
+      },
+    );
 
     return res.data;
   } catch (error) {
-    throw {
-      message:
-        error.code === "auth/popup-closed-by-user"
-          ? "Google login cancelled"
-          : "Google login failed",
-    };
+    throw new Error(
+      error.code === "auth/popup-closed-by-user"
+        ? "Google login cancelled"
+        : "Google login failed",
+    );
   }
 };
 
-// LOGOUT
+// LOGOUT (blocking → keep loader)
 export const logoutCurrentDevice = async () => {
   try {
     const res = await api.get("/auth/logout");
@@ -67,7 +72,7 @@ export const logoutCurrentDevice = async () => {
   }
 };
 
-// LOGOUT ALL
+// LOGOUT ALL (blocking)
 export const logoutAllDevices = async () => {
   try {
     const res = await api.get("/auth/logout-all");
@@ -80,7 +85,11 @@ export const logoutAllDevices = async () => {
 // REQUEST OTP FOR RESTORE
 export const requestRestore = async (email) => {
   try {
-    const res = await api.post("/auth/request-restore-account", { email });
+    const res = await api.post(
+      "/auth/request-restore-account",
+      { email },
+      { _skipLoader: true },
+    );
     return res.data;
   } catch (error) {
     handleError(error);
@@ -90,10 +99,11 @@ export const requestRestore = async (email) => {
 // VERIFY OTP FOR RESTORE
 export const verifyRestore = async (email, otp) => {
   try {
-    const res = await api.post("/auth/verify-restore-account", {
-      email,
-      otp,
-    });
+    const res = await api.post(
+      "/auth/verify-restore-account",
+      { email, otp },
+      { _skipLoader: true },
+    );
     return res.data;
   } catch (error) {
     handleError(error);
@@ -102,24 +112,42 @@ export const verifyRestore = async (email, otp) => {
 
 // REQUEST OTP RESET PASSWORD
 export const forgotPasswordRequest = async (email) => {
-  const res = await api.post("/auth/forgot-password", { email });
-  return res.data;
+  try {
+    const res = await api.post(
+      "/auth/forgot-password",
+      { email },
+      { _skipLoader: true },
+    );
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
 };
 
 // VERIFY OTP RESET PASSWORD
 export const verifyForgotOtp = async (email, otp) => {
-  const res = await api.post("/auth/verify-forgot-password", {
-    email,
-    otp,
-  });
-  return res.data;
+  try {
+    const res = await api.post(
+      "/auth/verify-forgot-password",
+      { email, otp },
+      { _skipLoader: true },
+    );
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
 };
 
 // RESET PASSWORD
 export const resetPassword = async (email, newPassword) => {
-  const res = await api.post("/auth/reset-password", {
-    email,
-    newPassword,
-  });
-  return res.data;
+  try {
+    const res = await api.post(
+      "/auth/reset-password",
+      { email, newPassword },
+      { _skipLoader: true },
+    );
+    return res.data;
+  } catch (error) {
+    handleError(error);
+  }
 };

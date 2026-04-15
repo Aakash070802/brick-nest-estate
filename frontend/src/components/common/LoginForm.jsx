@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import GoogleButton from "./GoogleButton";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const LoginForm = ({
   formData,
@@ -15,6 +16,22 @@ const LoginForm = ({
   onForgotPassword,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState("");
+
+  // Prevent empty submit + spam
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    if (!formData.email || !formData.password) {
+      toast.error("Email and password are required");
+      return;
+    }
+
+    setLocalError("");
+    handleSubmit(e);
+  };
 
   return (
     <div className="w-full md:w-1/2 bg-[var(--color-background)] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
@@ -26,30 +43,61 @@ const LoginForm = ({
         Sign in to your account
       </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Error on top (better visibility) */}
+      {(error || localError) && (
+        <p className="mb-4 text-sm text-[var(--color-destructive)] text-center">
+          {error || localError}
+        </p>
+      )}
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {/* Email */}
-        <input
-          type="email"
-          placeholder="Email"
-          id="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="p-3 rounded-xl w-full 
-          bg-[var(--color-card)] 
-          border border-[var(--color-border)] 
-          text-[var(--color-foreground)] 
-          outline-none 
-          focus:ring-2 focus:ring-[var(--color-primary)] 
-          transition"
-        />
+        <div>
+          <label
+            htmlFor="email"
+            className="text-sm text-[var(--color-foreground)]"
+          >
+            Email
+          </label>
+
+          <input
+            type="email"
+            placeholder="Email"
+            id="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={(e) => {
+              setLocalError("");
+              handleChange(e);
+            }}
+            className="p-3 rounded-xl w-full 
+            bg-[var(--color-card)] 
+            border border-[var(--color-border)] 
+            text-[var(--color-foreground)] 
+            outline-none 
+            focus:ring-2 focus:ring-[var(--color-primary)] 
+            transition"
+          />
+        </div>
 
         {/* Password */}
         <div className="relative">
+          <label
+            htmlFor="password"
+            className="text-sm text-[var(--color-foreground)]"
+          >
+            Password
+          </label>
+
           <input
             type={showPassword ? "text" : "password"}
             id="password"
+            autoComplete="current-password"
             value={formData.password}
-            onChange={handleChange}
+            onChange={(e) => {
+              setLocalError("");
+              handleChange(e);
+            }}
             placeholder="Password"
             className="p-3 pr-10 rounded-xl w-full 
             bg-[var(--color-card)] 
@@ -62,7 +110,7 @@ const LoginForm = ({
 
           <span
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-[var(--color-muted-foreground)]"
+            className="absolute right-3 top-11.25 -translate-y-1/2 cursor-pointer text-[var(--color-muted-foreground)]"
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
@@ -81,15 +129,15 @@ const LoginForm = ({
         </motion.button>
       </form>
 
-      {/* Forgot Password */}
-      <p
+      {/* ✅ Accessible button */}
+      <button
         onClick={onForgotPassword}
         className="mt-3 text-center text-sm 
         text-[var(--color-primary)] 
         cursor-pointer hover:underline"
       >
         Forgot Password?
-      </p>
+      </button>
 
       {/* Divider */}
       <div className="my-4 text-center text-[var(--color-muted-foreground)]">
@@ -105,13 +153,6 @@ const LoginForm = ({
           Sign up
         </Link>
       </p>
-
-      {/* Error (you were ignoring this prop completely) */}
-      {error && (
-        <p className="mt-3 text-sm text-[var(--color-destructive)] text-center">
-          {error}
-        </p>
-      )}
     </div>
   );
 };

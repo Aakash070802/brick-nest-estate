@@ -2,8 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   currentUser: null,
-  loading: false,
-  globalLoading: false,
+
+  authLoading: false, // login/register
+  userLoading: false, // profile update
+  globalLoading: false, // blocking UI
+  listingLoading: false, // home/listings
+
   error: null,
 };
 
@@ -13,65 +17,68 @@ const userSlice = createSlice({
   reducers: {
     // AUTH
     loginStart: (state) => {
-      state.loading = true;
+      state.authLoading = true;
       state.error = null;
     },
     loginSuccess: (state, action) => {
       state.currentUser = action.payload;
-      state.loading = false;
+      state.authLoading = false;
     },
     loginFailure: (state, action) => {
       state.error = action.payload;
-      state.loading = false;
+      state.authLoading = false;
     },
 
-    // UPDATE
+    // USER UPDATE
     updateUserStart: (state) => {
-      state.loading = true;
+      state.userLoading = true;
+      state.error = null;
     },
     updateUserSuccess: (state, action) => {
       state.currentUser = action.payload;
-      state.loading = false;
-      state.error = null;
+      state.userLoading = false;
     },
     updateUserFailure: (state, action) => {
       state.error = action.payload;
-      state.loading = false;
+      state.userLoading = false;
     },
 
     // DELETE
     deleteUserSuccess: (state) => {
       state.currentUser = null;
-      state.loading = false;
+      state.userLoading = false;
       state.error = null;
     },
 
     // LOGOUT
     logOutUserSuccess: (state) => {
       state.currentUser = null;
-      state.loading = false;
+      state.authLoading = false;
       state.error = null;
     },
 
+    // GLOBAL LOADER
     setGlobalLoading: (state, action) => {
       state.globalLoading = action.payload;
     },
 
+    // FAVORITES (SAFE)
     toggleFavoriteLocal: (state, action) => {
       if (!state.currentUser) return;
 
       const listingId = action.payload;
+      const favorites = state.currentUser.favorites || [];
 
-      const exists = state.currentUser.favorites.some(
+      const exists = favorites.some(
         (fav) => fav.toString() === listingId.toString(),
       );
 
       if (exists) {
-        state.currentUser.favorites = state.currentUser.favorites.filter(
+        state.currentUser.favorites = favorites.filter(
           (fav) => fav.toString() !== listingId.toString(),
         );
       } else {
-        state.currentUser.favorites.push(listingId);
+        state.currentUser.favorites = [...favorites, listingId];
       }
     },
   },

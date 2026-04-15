@@ -2,58 +2,105 @@ import axios from "axios";
 import { store } from "../redux/store";
 import { loginFailure, setGlobalLoading } from "../redux/features/userSlice";
 
-// create instance
+let activeRequests = 0;
+let isRefreshing = false;
+let pendingQueue = [];
+
+const startLoading = () => {
+  activeRequests++;
+  if (activeRequests === 1) {
+    store.dispatch(setGlobalLoading(true));
+  }
+};
+
+const stopLoading = () => {
+  activeRequests--;
+  if (activeRequests <= 0) {
+    activeRequests = 0;
+    store.dispatch(setGlobalLoading(false));
+  }
+};
+
+const processQueue = (error) => {
+  pendingQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  pendingQueue = [];
+};
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
+
+const refreshApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
 /**
- * REQUEST INTERCEPTOR
- * Start global loader
+ * REQUEST
  */
 api.interceptors.request.use(
   (config) => {
-    // allow skipping loader for specific requests
     if (!config._skipLoader) {
-      store.dispatch(setGlobalLoading(true));
+      startLoading();
+      config._loaderEnabled = true; // 🔥 track it
     }
     return config;
   },
   (error) => {
-    store.dispatch(setGlobalLoading(false));
     return Promise.reject(error);
   },
 );
 
 /**
- * RESPONSE INTERCEPTOR
- * Stop loader + handle token refresh
+ * RESPONSE
  */
 api.interceptors.response.use(
   (res) => {
-    store.dispatch(setGlobalLoading(false));
+    if (res.config._loaderEnabled) {
+      stopLoading();
+    }
     return res;
   },
   async (error) => {
-    store.dispatch(setGlobalLoading(false));
-
     const originalRequest = error.config;
 
-    // prevent infinite retry loop
+    if (originalRequest?._loaderEnabled) {
+      stopLoading();
+    }
+
+    // 🔥 HANDLE 401 WITH LOCK
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        await axios.post(
-          "http://localhost:5000/api/auth/refresh-token",
-          {},
-          { withCredentials: true },
-        );
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          pendingQueue.push({
+            resolve: () => resolve(api(originalRequest)),
+            reject,
+          });
+        });
+      }
 
+      isRefreshing = true;
+
+      try {
+        await refreshApi.post("/auth/refresh-token", {}, { _skipLoader: true });
+
+        processQueue(null);
         return api(originalRequest);
       } catch (err) {
-        store.dispatch(loginFailure(null));
+        processQueue(err);
+        store.dispatch(loginFailure("Session expired"));
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 

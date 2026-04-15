@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createListing } from "../../services/listingService";
 import { toast } from "react-toastify";
 import { RxCross1 } from "react-icons/rx";
+import Checkbox from "../ui/Checkbox";
 
 const CreateListingForm = ({ onClose, onSuccess }) => {
   const [form, setForm] = useState({
@@ -20,6 +21,7 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
   });
 
   const [preview, setPreview] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { id, value, type, checked, files } = e.target;
@@ -61,8 +63,10 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
         }
       });
 
+      setLoading(true);
       const res = await createListing(data);
 
+      setLoading(false);
       toast.success("Listing created");
       onSuccess(res);
     } catch (err) {
@@ -185,19 +189,33 @@ const CreateListingForm = ({ onClose, onSuccess }) => {
           </div>
         )}
 
-        {/* CHECKBOX */}
-        <div className="flex flex-wrap gap-4 md:col-span-2 text-sm text-[var(--color-foreground)]">
-          <label>
-            <input type="checkbox" id="furnished" onChange={handleChange} />{" "}
-            Furnished
-          </label>
-          <label>
-            <input type="checkbox" id="parking" onChange={handleChange} />{" "}
-            Parking
-          </label>
-          <label>
-            <input type="checkbox" id="offer" onChange={handleChange} /> Offer
-          </label>
+        <div className="flex flex-wrap gap-6 md:col-span-2 text-sm text-[var(--color-foreground)]">
+          {/* FURNISHED */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={form.furnished}
+              onChange={(val) => setForm({ ...form, furnished: val })}
+            />
+            <span>Furnished</span>
+          </div>
+
+          {/* PARKING */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={form.parking}
+              onChange={(val) => setForm({ ...form, parking: val })}
+            />
+            <span>Parking</span>
+          </div>
+
+          {/* OFFER */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={form.offer}
+              onChange={(val) => setForm({ ...form, offer: val })}
+            />
+            <span>Offer</span>
+          </div>
         </div>
 
         {/* BUTTON */}

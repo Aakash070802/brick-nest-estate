@@ -24,27 +24,25 @@ const useTheme = () => {
     }
 
     localStorage.setItem("theme", theme);
+
+    // broadcast change
+    window.dispatchEvent(new Event("themeChange"));
   }, [theme]);
 
-  // IMPORTANT: sync across components
+  // listen for global theme change
   useEffect(() => {
-    const observer = new MutationObserver(() => {
+    const handleThemeChange = () => {
       const isDark = document.documentElement.classList.contains("dark");
       setTheme(isDark ? "dark" : "light");
-    });
+    };
 
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    window.addEventListener("themeChange", handleThemeChange);
 
-    return () => observer.disconnect();
+    return () => window.removeEventListener("themeChange", handleThemeChange);
   }, []);
 
   const toggleTheme = () => {
-    const isDark = document.documentElement.classList.contains("dark");
-    const newTheme = isDark ? "light" : "dark";
-    setTheme(newTheme);
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   return { theme, toggleTheme };

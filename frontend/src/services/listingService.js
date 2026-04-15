@@ -1,29 +1,50 @@
 import api from "./api";
 
+// Get user's listings (blocking → keep loader)
 export const getMyListings = async () => {
-  const res = await api.get("/listing/my-lists");
-  return res.data.data;
+  try {
+    const res = await api.get("/listing/my-lists");
+    return res.data.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to fetch listings");
+  }
 };
 
+// Create listing (blocking)
 export const createListing = async (formData) => {
-  const res = await api.post("/listing/create", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data.data;
+  try {
+    const res = await api.post("/listing/create", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to create listing");
+  }
 };
 
+// Delete listing (blocking)
 export const deleteListing = async (id) => {
-  const res = await api.delete(`/listing/my-lists/${id}`);
-  return res.data;
+  try {
+    const res = await api.delete(`/listing/my-lists/${id}`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to delete listing");
+  }
 };
 
+// Update listing (blocking)
 export const updateListing = async (id, formData) => {
-  const res = await api.patch(`/listing/my-lists/${id}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data.data;
+  try {
+    const res = await api.patch(`/listing/my-lists/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to update listing");
+  }
 };
 
+// Get all listings (NON-BLOCKING → skeleton)
 export const getAllListings = async ({
   page = 1,
   limit = 8,
@@ -38,21 +59,40 @@ export const getAllListings = async ({
       ...filters,
     };
 
-    const { data } = await api.get("/listing/all", { params });
+    const { data } = await api.get("/listing/all", {
+      params,
+      _skipLoader: true,
+    });
 
-    console.log("API PARAMS:", params);
     return data.data;
   } catch (err) {
     throw new Error(err.response?.data?.message || "Failed to fetch listings");
   }
 };
 
+// Get single listing (NON-BLOCKING)
 export const getListingById = async (id) => {
-  const res = await api.get(`/listing/${id}`);
-  return res.data.data;
+  try {
+    const res = await api.get(`/listing/${id}`, {
+      _skipLoader: true,
+    });
+    return res.data.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to fetch listing");
+  }
 };
 
+// Toggle favorite (NON-BLOCKING)
 export const toggleFavorite = async (listingId) => {
-  const res = await api.post("/favorite/toggle", { listingId });
-  return res.data;
+  try {
+    const res = await api.post(
+      "/favorite/toggle",
+      { listingId },
+      { _skipLoader: true },
+    );
+
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Failed to update favorite");
+  }
 };

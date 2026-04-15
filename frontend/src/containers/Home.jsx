@@ -26,21 +26,26 @@ const Home = () => {
   const [listings, setListings] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
 
-  // NEW FILTERS
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
 
   const observerRef = useRef();
+  const fetchIdRef = useRef(0);
+  const isFirstLoad = useRef(true);
 
   const fetchListings = async (pageNum = 1, reset = false) => {
     try {
       setLoading(true);
 
+      const fetchId = ++fetchIdRef.current;
+
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(
-          ([key, value]) =>
+          ([_, value]) =>
             value !== false && value !== "all" && value !== undefined,
         ),
       );
@@ -49,9 +54,10 @@ const Home = () => {
         page: pageNum,
         limit: 8,
         search,
-        ...cleanedFilters,
+        filters: cleanedFilters,
       });
-      console.log("FILTERS SENT:", cleanedFilters);
+
+      if (fetchId !== fetchIdRef.current) return;
 
       const safeListings = Array.isArray(res.properties) ? res.properties : [];
 
@@ -70,10 +76,9 @@ const Home = () => {
       console.error(err);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
-
-  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     if (isFirstLoad.current) {
@@ -86,7 +91,6 @@ const Home = () => {
     fetchListings(1, true);
   }, [filters, search]);
 
-  // INFINITE SCROLL
   const lastElementRef = (node) => {
     if (loading || !hasMore) return;
 
@@ -101,11 +105,14 @@ const Home = () => {
     if (node) observerRef.current.observe(node);
   };
 
-  // NEXT PAGE
   useEffect(() => {
     if (page === 1) return;
     fetchListings(page);
   }, [page]);
+
+  useEffect(() => {
+    return () => observerRef.current?.disconnect();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
@@ -120,36 +127,46 @@ const Home = () => {
             Explore Properties
           </motion.h1>
 
-          {/* FILTER BUTTON */}
           <FilterDrawer onApply={(newFilters) => setFilters(newFilters)} />
         </div>
 
+        {/* INITIAL LOADING */}
+        {initialLoading && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
         {/* GRID */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          layout
-          className="grid gap-4 grid-cols-2 md:grid-cols-4"
-        >
-          {listings.map((item, index) => {
-            const isLast = index === listings.length - 1;
+        {!initialLoading && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            layout
+            className="grid gap-4 grid-cols-2 md:grid-cols-4"
+          >
+            {listings.map((item, index) => {
+              const isLast = index === listings.length - 1;
 
-            return (
-              <motion.div
-                key={item._id}
-                variants={itemVariants}
-                layout
-                ref={isLast ? lastElementRef : null}
-              >
-                <PropertyCard listing={item} />
-              </motion.div>
-            );
-          })}
-        </motion.div>
+              return (
+                <motion.div
+                  key={item._id}
+                  variants={itemVariants}
+                  layout
+                  ref={isLast ? lastElementRef : null}
+                >
+                  <PropertyCard listing={item} />
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
 
-        {/* LOADING */}
-        {loading && (
+        {/* PAGINATION LOADER */}
+        {loading && !initialLoading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
@@ -157,7 +174,7 @@ const Home = () => {
           </div>
         )}
 
-        {!hasMore && (
+        {!hasMore && !initialLoading && (
           <p className="text-center mt-6 text-muted-foreground">
             No more listings
           </p>

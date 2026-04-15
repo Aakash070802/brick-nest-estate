@@ -1,7 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
-import { FaMoon, FaSun, FaBars, FaTimes } from "react-icons/fa";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FaBars, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import darkLogo from "../../assets/logo-dark.png";
 import lightLogo from "../../assets/logo-light.png";
 import { CgProfile } from "react-icons/cg";
@@ -9,34 +9,52 @@ import { IoMdLogOut } from "react-icons/io";
 import { GoAlertFill } from "react-icons/go";
 import { useTheme } from "../../hooks/useTheme";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import {
   logoutCurrentDevice,
   logoutAllDevices,
 } from "../../services/authService";
-import { loginFailure } from "../../redux/features/userSlice";
+import { logOutUserSuccess } from "../../redux/features/userSlice";
 import { toast } from "react-toastify";
 import { ThemeToggleButton } from "../ui/theme-toggle-button";
+
+const navItems = ["rent", "sell", "contact", "about"];
 
 const Header = () => {
   const location = useLocation();
   const isSignIn = location.pathname === "/login";
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const navItems = ["rent", "sell", "contact", "about"];
+  const dropdownRef = useRef();
 
   const { currentUser } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // ✅ close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ lock scroll on mobile menu
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "auto";
+  }, [menuOpen]);
+
   const handleLogout = async () => {
     try {
       await logoutCurrentDevice();
-      dispatch(loginFailure(null));
+      dispatch(logOutUserSuccess());
       toast.success("Logged out");
       navigate("/");
     } catch (err) {
@@ -47,7 +65,7 @@ const Header = () => {
   const handleLogoutAll = async () => {
     try {
       await logoutAllDevices();
-      dispatch(loginFailure(null));
+      dispatch(logOutUserSuccess());
       toast.success("Logged out from all devices");
       navigate("/");
     } catch (err) {
@@ -56,7 +74,7 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full sticky top-0 z-50 bg-background">
+    <header className="w-full sticky top-0 z-50 bg-[var(--color-background)]">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         {/* LEFT NAV */}
         <div className="hidden md:flex items-center gap-8">
@@ -94,7 +112,6 @@ const Header = () => {
         <div className="flex items-center gap-4">
           {!currentUser ? (
             <div className="hidden md:flex relative items-center w-52 h-10 bg-muted rounded-full overflow-hidden shadow-inner">
-              {/* SLIDER */}
               <motion.div
                 layout
                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
@@ -123,14 +140,12 @@ const Header = () => {
               </Link>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <div
                 className="relative w-12 h-12 cursor-pointer"
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => setShowDropdown((prev) => !prev)}
               >
-                {/* GRADIENT BORDER WRAPPER */}
                 <div className="w-full h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-[2px]">
-                  {/* IMAGE */}
                   <div className="w-full h-full rounded-full overflow-hidden bg-[var(--color-card)]">
                     <img
                       src={currentUser?.avatar || "/default-user.png"}
@@ -144,7 +159,6 @@ const Header = () => {
                   </div>
                 </div>
 
-                {/* ONLINE BADGE */}
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[var(--color-background)] rounded-full"></span>
               </div>
 
@@ -184,7 +198,7 @@ const Header = () => {
 
           {/* MOBILE BUTTON */}
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => setMenuOpen((prev) => !prev)}
             className="md:hidden text-foreground"
           >
             {menuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -201,14 +215,12 @@ const Header = () => {
             exit={{ x: "100%" }}
             className="fixed top-0 right-0 w-72 h-full bg-card p-6 z-50"
           >
-            {/* CLOSE */}
             <div className="flex justify-end mb-6">
               <button onClick={() => setMenuOpen(false)}>
                 <FaTimes size={22} className="text-foreground" />
               </button>
             </div>
 
-            {/* NAV */}
             <div className="flex flex-col gap-6">
               {navItems.map((item) => (
                 <Link
@@ -228,7 +240,6 @@ const Header = () => {
               ))}
             </div>
 
-            {/* AUTH */}
             {!currentUser && (
               <div className="flex flex-col gap-4 mt-10">
                 <Link

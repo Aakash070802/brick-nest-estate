@@ -1,15 +1,20 @@
 import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { useTheme } from "../../hooks/useTheme";
+import { useId } from "react";
 
 export const ThemeToggleButton = ({ className = "" }) => {
   const { theme, toggleTheme } = useTheme();
-  const isDark = theme ? theme === "dark" : false;
+  const isDark = theme === "dark";
+
+  // ✅ unique ID for SVG clipPath
+  const clipId = useId();
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
+      aria-label="Toggle theme"
       className={cn(
         "rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center",
         isDark ? "bg-white text-black" : "bg-black text-white",
@@ -22,7 +27,7 @@ export const ThemeToggleButton = ({ className = "" }) => {
         viewBox="0 0 32 32"
         className="w-6 h-6"
       >
-        <clipPath id="toggle-clip">
+        <clipPath id={clipId}>
           <motion.path
             animate={{ y: isDark ? 10 : 0, x: isDark ? -12 : 0 }}
             transition={{ duration: 0.35 }}
@@ -30,10 +35,10 @@ export const ThemeToggleButton = ({ className = "" }) => {
           />
         </clipPath>
 
-        <g clipPath="url(#toggle-clip)">
+        <g clipPath={`url(#${clipId})`}>
           <motion.circle
             animate={{ r: isDark ? 10 : 8 }}
-            initial={{ r: 8 }}
+            initial={false}
             transition={{ duration: 0.35 }}
             cx="16"
             cy="16"

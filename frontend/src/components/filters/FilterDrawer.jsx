@@ -87,10 +87,10 @@ const FilterDrawer = ({ onApply }) => {
                 <select
                   value={localFilters.type}
                   onChange={(e) =>
-                    setLocalFilters({
-                      ...localFilters,
+                    setLocalFilters((prev) => ({
+                      ...prev,
                       type: e.target.value,
-                    })
+                    }))
                   }
                   className="w-full px-3 py-2 rounded-lg border
                   bg-[var(--color-background)]
@@ -118,10 +118,10 @@ const FilterDrawer = ({ onApply }) => {
                       type="checkbox"
                       checked={localFilters[key]}
                       onChange={(e) =>
-                        setLocalFilters({
-                          ...localFilters,
+                        setLocalFilters((prev) => ({
+                          ...prev,
                           [key]: e.target.checked,
-                        })
+                        }))
                       }
                       className="w-4 h-4 accent-[var(--color-primary)]"
                     />

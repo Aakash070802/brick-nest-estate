@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   updateUserSuccess,
   logOutUserSuccess,
+  setGlobalLoading,
 } from "../../redux/features/userSlice";
 import {
   updateUser,
@@ -29,7 +30,7 @@ const tabs = [
 ];
 
 const Profile = () => {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, globalLoading } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fileRef = useRef(null);
@@ -42,71 +43,98 @@ const Profile = () => {
     newPassword: "",
   });
 
-  const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // ✅ SAFE FORM INIT
   useEffect(() => {
     if (currentUser) {
       setForm({
-        username: currentUser?.username || "",
-        email: currentUser?.email || "",
+        username: currentUser.username || "",
+        email: currentUser.email || "",
       });
     }
   }, [currentUser]);
 
   const handleUpdate = async () => {
+    if (globalLoading) return;
+
     try {
-      setLoading(true);
+      dispatch(setGlobalLoading(true));
+
       const updated = await updateUser(form);
       dispatch(updateUserSuccess(updated));
+
       toast.success("Profile updated");
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setLoading(false);
+      dispatch(setGlobalLoading(false));
     }
   };
 
   const handleAvatar = async (e) => {
+    if (globalLoading) return;
+
     try {
       const file = e.target.files[0];
       if (!file) return;
+
+      dispatch(setGlobalLoading(true));
 
       const formData = new FormData();
       formData.append("avatar", file);
 
       const updated = await updateAvatar(formData);
       dispatch(updateUserSuccess(updated));
+
       toast.success("Avatar updated");
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      dispatch(setGlobalLoading(false));
+      e.target.value = null; // ✅ allow same file re-upload
     }
   };
 
   const handlePassword = async () => {
+    if (globalLoading) return;
+
     try {
+      dispatch(setGlobalLoading(true));
+
       await changePassword(passwords);
+
       toast.success("Password changed");
       setShowPasswordModal(false);
       setPasswords({ currentPassword: "", newPassword: "" });
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      dispatch(setGlobalLoading(false));
     }
   };
 
   const handleDelete = async () => {
+    if (globalLoading) return;
+
     try {
+      dispatch(setGlobalLoading(true));
+
       await deleteAccount();
+
       dispatch(logOutUserSuccess());
       toast.success("Account deleted");
-      navigate("/login");
+
+      navigate("/login", { replace: true }); // ✅ safer navigation
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      dispatch(setGlobalLoading(false));
     }
   };
 
-  if (!currentUser) return <ProfileSkeleton />;
+  if (currentUser === null) return <ProfileSkeleton />;
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
@@ -117,13 +145,12 @@ const Profile = () => {
             My Account
           </h1>
 
-          {/* TABS */}
           <div className="flex gap-2 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id);
+                  setActiveTab(tab.id); // ✅ always sync UI
 
                   if (tab.id === "favorites") navigate("/favorites");
                   if (tab.id === "listings") navigate("/view-my-lists");
@@ -148,7 +175,6 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-6 shadow-lg"
         >
-          {/* PROFILE TAB */}
           {activeTab === "profile" && (
             <>
               <ProfileHeader
@@ -162,7 +188,7 @@ const Profile = () => {
                   form={form}
                   setForm={setForm}
                   handleUpdate={handleUpdate}
-                  loading={loading}
+                  loading={globalLoading} // ✅ correct loading
                 />
               </div>
 

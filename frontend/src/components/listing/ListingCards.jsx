@@ -1,8 +1,27 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FaEllipsisV } from "react-icons/fa";
 
 const ListingCard = ({ listing, onEdit, onDelete }) => {
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef();
+
+  // ✅ CLOSE ON OUTSIDE CLICK
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ PRICE FORMATTER
+  const formatPrice = (price) => {
+    if (!price) return "N/A";
+    return price.toLocaleString("en-IN");
+  };
 
   return (
     <div
@@ -13,8 +32,12 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
       {/* IMAGE */}
       <div className="relative">
         <img
-          src={listing.imageUrls?.[0]?.url}
+          src={listing.imageUrls?.[0]?.url || "/fallback.jpg"}
           alt={listing.name}
+          loading="lazy"
+          onError={(e) => {
+            e.target.src = "/fallback.jpg";
+          }}
           className="h-48 sm:h-52 md:h-56 w-full object-cover 
           group-hover:scale-105 transition duration-300"
         />
@@ -22,10 +45,13 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
         {/* GRADIENT */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
-        {/* 3 DOT MENU (ALWAYS VISIBLE) */}
-        <div className="absolute top-3 right-3">
+        {/* MENU */}
+        <div className="absolute top-3 right-3" ref={dropdownRef}>
           <button
-            onClick={() => setOpen(!open)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen((prev) => !prev);
+            }}
             className="bg-white/90 dark:bg-black/70 backdrop-blur-md 
             p-2 rounded-full shadow-md 
             text-gray-700 dark:text-white 
@@ -41,19 +67,26 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
               rounded-lg shadow-lg overflow-hidden z-50"
             >
               <button
-                onClick={onEdit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                  setOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-sm 
-                text-[var(--color-foreground)] cursor-pointer
+                text-[var(--color-foreground)] 
                 hover:bg-[var(--color-muted)] transition"
               >
                 Edit
               </button>
 
               <button
-                onClick={onDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                  setOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-sm 
                 text-[var(--color-destructive)] 
-                cursor-pointer
                 hover:bg-red-500/10 transition"
               >
                 Delete
@@ -67,24 +100,24 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
       <div className="p-4 space-y-2">
         {/* TITLE */}
         <h2 className="text-base sm:text-lg font-semibold text-[var(--color-foreground)] line-clamp-1">
-          {listing.name}
+          {listing.name || "Untitled Property"}
         </h2>
 
         {/* ADDRESS */}
         <p className="text-sm text-[var(--color-muted-foreground)] line-clamp-1">
-          {listing.address}
+          {listing.address || "No address provided"}
         </p>
 
         {/* PRICE */}
         <div className="flex items-center justify-between mt-2">
           <div>
             <p className="text-lg font-bold text-[var(--color-primary)]">
-              ₹ {listing.discountedPrice || listing.regularPrice}
+              ₹ {formatPrice(listing.discountedPrice || listing.regularPrice)}
             </p>
 
             {listing.discountedPrice && (
               <p className="text-sm line-through text-[var(--color-muted-foreground)]">
-                ₹ {listing.regularPrice}
+                ₹ {formatPrice(listing.regularPrice)}
               </p>
             )}
           </div>
@@ -93,10 +126,10 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
           <span
             className="text-xs px-3 py-1 rounded-full 
             bg-[var(--color-secondary)] 
-            text-[var(--color-primary-foreground)] 
+            text-[var(--color-secondary-foreground)] 
             capitalize shadow-sm"
           >
-            {listing.type}
+            {listing.type || "N/A"}
           </span>
         </div>
       </div>

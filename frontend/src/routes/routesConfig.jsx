@@ -25,34 +25,33 @@ export const routes = [
   {
     element: <Layout />,
     children: [
-      // PUBLIC
+      // PUBLIC ROUTES
       { path: "/", element: <Home /> },
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
-      { path: "/login", element: <Login /> },
-      { path: "/register", element: <Register /> },
       { path: "/search", element: <Search /> },
       { path: "/listing/:id", element: <PropertyDetails /> },
-      { path: "/favorites", element: <Favorites /> },
-      { path: "*", element: <NotFound /> },
 
-      // PROTECTED
+      // AUTH ROUTES
+      { path: "/login", element: <Login /> },
+      { path: "/register", element: <Register /> },
+
+      // PROTECTED ROUTES
       {
         element: <PrivateRoute />,
         children: [
           { path: "/profile", element: <Profile /> },
+          { path: "/favorites", element: <Favorites /> },
           { path: "/view-my-lists", element: <ViewMyListing /> },
           { path: "/create-listing", element: <CreateListingForm /> },
-          {
-            path: "/delete-listing/:listingId",
-            element: <DeleteListingModal />,
-          },
           {
             path: "/update-listing/:listingId",
             element: <UpdateListingForm />,
           },
         ],
       },
+
+      { path: "*", element: <NotFound /> },
     ],
   },
 ];

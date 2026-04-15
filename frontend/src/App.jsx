@@ -18,16 +18,14 @@ const renderRoutes = (routesArray) => {
 };
 
 function App() {
-  const { globalLoading } = useSelector((state) => state.user);
+  const globalLoading = useSelector((state) => state.user.globalLoading);
 
   return (
-    <>
-      {/* Overlay Loader */}
+    <div className="relative">
       {globalLoading && <GlobalLoader />}
 
-      {/* Routes */}
       <Routes>{renderRoutes(routes)}</Routes>
-    </>
+    </div>
   );
 }
 

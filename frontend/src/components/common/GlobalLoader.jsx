@@ -2,28 +2,33 @@ import { motion } from "framer-motion";
 
 const GlobalLoader = () => {
   return (
-    <div className="fixed inset-0 z-[9999] bg-[var(--color-background)]/80 backdrop-blur-sm flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        {/* Animated Progress Bar */}
-        <div className="w-40 h-3 rounded-full bg-[var(--color-card)] overflow-hidden">
-          <motion.div
-            className="h-full bg-[var(--color-primary)]"
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{
-              repeat: Infinity,
-              duration: 1.2,
-              ease: "linear",
-            }}
-          />
-        </div>
+    <motion.div
+      role="status"
+      aria-live="polite"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[9999] 
+      bg-[var(--color-background)]/80 backdrop-blur-md 
+      flex flex-col items-center justify-center 
+      pointer-events-auto"
+    >
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{
+          repeat: Infinity,
+          duration: 1.2,
+          ease: "linear",
+        }}
+        className="w-12 h-12 rounded-full 
+        border-4 border-[var(--color-muted)] 
+        border-t-[var(--color-primary)]"
+      />
 
-        {/* Text */}
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          Loading...
-        </p>
-      </div>
-    </div>
+      <p className="text-xs text-[var(--color-muted-foreground)] mt-3">
+        Processing...
+      </p>
+    </motion.div>
   );
 };
 

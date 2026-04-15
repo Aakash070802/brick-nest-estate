@@ -2,45 +2,59 @@ import { motion } from "framer-motion";
 
 const shimmer = {
   animate: {
-    background: [
-      "linear-gradient(90deg, #eee 25%, #ddd 37%, #eee 63%)",
-      "linear-gradient(90deg, #ddd 25%, #eee 37%, #ddd 63%)",
-    ],
+    backgroundPosition: ["-200% 0", "200% 0"],
     transition: {
-      duration: 1.2,
+      duration: 1.5,
       repeat: Infinity,
+      ease: "linear",
     },
   },
 };
 
+const baseStyle =
+  "bg-[linear-gradient(90deg,var(--color-muted)_25%,var(--color-border)_37%,var(--color-muted)_63%)] bg-[length:200%_100%]";
+
 const PropertyCardSkeleton = () => {
   return (
-    <div className="rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-card)]">
+    <motion.div
+      variants={shimmer}
+      animate="animate"
+      className="rounded-2xl overflow-hidden 
+      border border-[var(--color-border)] 
+      bg-[var(--color-card)]"
+    >
       {/* IMAGE */}
-      <motion.div
-        variants={shimmer}
-        animate="animate"
-        className="w-full h-40"
-      />
+      <div className={`w-full h-48 ${baseStyle}`} />
 
-      <div className="p-3 space-y-2">
-        <motion.div
-          variants={shimmer}
-          animate="animate"
-          className="h-3 w-3/4 rounded"
-        />
-        <motion.div
-          variants={shimmer}
-          animate="animate"
-          className="h-3 w-1/2 rounded"
-        />
-        <motion.div
-          variants={shimmer}
-          animate="animate"
-          className="h-4 w-1/3 rounded"
-        />
+      <div className="p-4 flex flex-col gap-3">
+        {/* USER ROW */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full ${baseStyle}`} />
+            <div className={`h-3 w-16 rounded ${baseStyle}`} />
+          </div>
+          <div className={`h-2 w-10 rounded ${baseStyle}`} />
+        </div>
+
+        {/* TITLE */}
+        <div className={`h-4 w-3/4 rounded ${baseStyle}`} />
+
+        {/* ADDRESS */}
+        <div className={`h-3 w-2/3 rounded ${baseStyle}`} />
+
+        {/* FEATURES */}
+        <div className="flex gap-4">
+          <div className={`h-3 w-10 rounded ${baseStyle}`} />
+          <div className={`h-3 w-10 rounded ${baseStyle}`} />
+        </div>
+
+        {/* PRICE */}
+        <div className="flex justify-between items-center mt-2">
+          <div className={`h-5 w-20 rounded ${baseStyle}`} />
+          <div className={`h-3 w-12 rounded ${baseStyle}`} />
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

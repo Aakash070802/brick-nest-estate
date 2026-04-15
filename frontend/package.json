@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.14.0",
+    "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.11.0",
     "framer-motion": "^12.38.0",
@@ -24,6 +26,7 @@
     "react-router-dom": "^7.13.2",
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0",
+    "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {

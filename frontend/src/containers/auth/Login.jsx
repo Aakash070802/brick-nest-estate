@@ -21,7 +21,6 @@ import Modal from "../../components/common/Modal";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { toggleFavorite } from "../../services/listingService";
 
 const backdrop = {
   hidden: { opacity: 0 },
@@ -90,6 +89,7 @@ const Login = () => {
       const data = await loginUser(formData);
       dispatch(loginSuccess(data.data));
       toast.success("Welcome");
+      navigate("/");
     } catch (err) {
       if (err.message === "ACCOUNT_DEACTIVATED") {
         setShowRestoreModal(true);

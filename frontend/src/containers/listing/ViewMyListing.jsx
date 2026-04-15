@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { getMyListings, deleteListing } from "../../services/listingService";
 
 import ListingCards from "../../components/listing/ListingCards";
-
 import CreateListingModal from "../../components/listing/CreateListingModal";
 import UpdateListingModal from "../../components/listing/UpdateListingModal";
 import DeleteListingModal from "../../components/listing/DeleteListingModal";
@@ -13,6 +12,7 @@ import { toast } from "react-toastify";
 const ViewMyListing = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -24,9 +24,9 @@ const ViewMyListing = () => {
     try {
       setLoading(true);
       const data = await getMyListings();
-      setListings(data || []);
+      setListings(Array.isArray(data) ? data : []);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Failed to fetch listings");
     } finally {
       setLoading(false);
     }
@@ -37,9 +37,11 @@ const ViewMyListing = () => {
   }, []);
 
   const handleDelete = async () => {
-    if (!selectedListing) return;
+    if (!selectedListing || deleting) return;
 
     try {
+      setDeleting(true);
+
       await deleteListing(selectedListing._id);
 
       setListings((prev) =>
@@ -50,7 +52,9 @@ const ViewMyListing = () => {
       setDeleteOpen(false);
       setSelectedListing(null);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Delete failed");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -79,20 +83,30 @@ const ViewMyListing = () => {
           </button>
         </div>
 
-        {/* CONTENT */}
-        {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {/* {Array.from({ length: 8 }).map((_, i) => (
-              // <ListingSkeleton key={i} />
-            ))} */}
+        {/* LOADING */}
+        {loading && (
+          <div className="text-center py-20 text-[var(--color-muted-foreground)]">
+            Loading your listings...
           </div>
-        ) : listings.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="text-[var(--color-muted-foreground)] text-lg">
-              You have no properties yet.
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && listings.length === 0 && (
+          <div className="text-center py-24 space-y-3">
+            <p className="text-lg text-[var(--color-muted-foreground)]">
+              You haven't created any listings yet.
             </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white"
+            >
+              Create your first listing
+            </button>
           </div>
-        ) : (
+        )}
+
+        {/* LIST */}
+        {!loading && listings.length > 0 && (
           <motion.div
             initial="hidden"
             animate="visible"
@@ -153,6 +167,7 @@ const ViewMyListing = () => {
             setSelectedListing(null);
           }}
           onConfirm={handleDelete}
+          loading={deleting}
         />
       </div>
     </div>
