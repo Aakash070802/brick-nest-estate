@@ -44,7 +44,6 @@ const Home = () => {
   const fetchListings = async (pageNum = 1, reset = false) => {
     try {
       setLoading(true);
-
       const fetchId = ++fetchIdRef.current;
 
       const cleanedFilters = Object.fromEntries(
@@ -67,11 +66,9 @@ const Home = () => {
 
       setListings((prev) => {
         if (reset) return safeListings;
-
         const newItems = safeListings.filter(
           (item) => !prev.some((p) => p._id === item._id),
         );
-
         return [...prev, ...newItems];
       });
 
@@ -93,24 +90,21 @@ const Home = () => {
       fetchListings(1, true);
       return;
     }
-
     setPage(1);
     fetchListings(1, true);
   }, [filters, debouncedSearch]);
 
   /**
-   * 🔥 IMPROVED DEBOUNCE (NO FLICKER)
+   * 🔥 IMPROVED DEBOUNCE
    */
   useEffect(() => {
     const timer = setTimeout(() => {
       const trimmed = search.trim();
-
       if (trimmed.length === 0) {
         setDebouncedSearch("");
       } else if (trimmed.length >= 3) {
         setDebouncedSearch(trimmed);
       }
-      // 👇 do nothing if 1-2 chars → keep previous results
     }, 400);
 
     return () => clearTimeout(timer);
@@ -129,7 +123,6 @@ const Home = () => {
    */
   const lastElementRef = (node) => {
     if (loading || !hasMore) return;
-
     if (observerRef.current) observerRef.current.disconnect();
 
     observerRef.current = new IntersectionObserver((entries) => {
@@ -146,67 +139,69 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] px-4 py-6">
-      <div className="max-w-7xl mx-auto">
-        {/* 🔥 STICKY SEARCH BAR */}
-        <div
-          className="sticky top-0 z-30 backdrop-blur-md 
-          bg-[var(--color-background)]/80 
-          border-b border-[var(--color-border)] 
-          pb-4 mb-6"
-        >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div className="min-h-screen bg-[var(--color-background)]">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* 🔥 FIXED STICKY HEADER */}
+        <div className="sticky top-14 z-50 -mx-4 px-4 py-4 bg-[var(--color-background)]/95 backdrop-blur-lg border-b border-[var(--color-border)]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {/* Title */}
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl font-bold"
+              className="text-2xl md:text-3xl font-bold text-[var(--color-foreground)] flex-shrink-0"
             >
               Explore Properties
             </motion.h1>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              {/* 🔍 SEARCH */}
-              <div className="relative w-full md:w-80">
+            {/* Search + Filter */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+              {/* Search Input */}
+              <div className="relative flex-1 min-w-0 md:w-80">
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search like: 2BHK near school..."
-                  className="w-full px-4 py-2 pr-10 rounded-xl border
-                  border-[var(--color-border)]
-                  bg-[var(--color-card)]
-                  text-[var(--color-foreground)]
-                  outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  className="w-full px-4 py-3 rounded-2xl border border-[var(--color-border)]
+                    bg-[var(--color-card)] text-[var(--color-foreground)]
+                    outline-none focus:ring-2 focus:ring-[var(--color-primary)]
+                    placeholder:text-[var(--color-muted-foreground)]"
                 />
-
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2
-                    text-sm text-[var(--color-muted-foreground)]
-                    hover:text-[var(--color-foreground)]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2
+                      text-sm text-[var(--color-muted-foreground)]
+                      hover:text-[var(--color-foreground)] transition-colors"
                   >
                     ✕
                   </button>
                 )}
               </div>
 
-              <FilterDrawer onApply={(newFilters) => setFilters(newFilters)} />
+              {/* Filter Drawer */}
+              <div className="flex-shrink-0">
+                <FilterDrawer
+                  onApply={(newFilters) => setFilters(newFilters)}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 🔥 SEARCH FEEDBACK */}
+        {/* SEARCH FEEDBACK */}
         {debouncedSearch && (
-          <p className="text-sm text-[var(--color-muted-foreground)] mb-3">
+          <p className="text-sm text-[var(--color-muted-foreground)] mt-6 mb-6 pl-1">
             Showing results for{" "}
-            <span className="font-medium">"{debouncedSearch}"</span>
+            <span className="font-medium text-[var(--color-foreground)]">
+              "{debouncedSearch}"
+            </span>
           </p>
         )}
 
         {/* INITIAL LOADING */}
         {initialLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
@@ -215,23 +210,22 @@ const Home = () => {
 
         {/* EMPTY STATE */}
         {!initialLoading && listings.length === 0 && (
-          <p className="text-center text-[var(--color-muted-foreground)] mt-10">
+          <p className="text-center text-[var(--color-muted-foreground)] mt-12 text-lg">
             No properties found. Try a different search.
           </p>
         )}
 
-        {/* GRID */}
+        {/* LISTINGS GRID */}
         {!initialLoading && listings.length > 0 && (
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             layout
-            className="grid gap-4 grid-cols-2 md:grid-cols-4"
+            className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6"
           >
             {listings.map((item, index) => {
               const isLast = index === listings.length - 1;
-
               return (
                 <motion.div
                   key={item._id}
@@ -248,15 +242,16 @@ const Home = () => {
 
         {/* LOADING MORE */}
         {loading && !initialLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
           </div>
         )}
 
+        {/* END OF LIST */}
         {!hasMore && !initialLoading && listings.length > 0 && (
-          <p className="text-center mt-6 text-muted-foreground">
+          <p className="text-center mt-10 text-[var(--color-muted-foreground)]">
             No more listings
           </p>
         )}
