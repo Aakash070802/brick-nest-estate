@@ -64,21 +64,6 @@ const createListing = async (req, res) => {
     });
   }
 
-  // Build search text
-  const searchText = buildSearchText({
-    name,
-    description,
-    address,
-    bedrooms,
-    bathrooms,
-    furnished,
-    parking,
-    type,
-  });
-
-  // Generate embedding
-  const embedding = await generateEmbedding(searchText);
-
   const listing = await Listing.create({
     name,
     description,
@@ -93,8 +78,6 @@ const createListing = async (req, res) => {
     offer,
     imageUrls: uploadedImages,
     userRef: req.user._id,
-    searchText,
-    embedding,
   });
 
   await logActivity(req, req.user._id, "CREATED_PROPERTY");
@@ -130,6 +113,8 @@ const getUserListings = async (req, res) => {
  * @query { limit: number, page: number, search: string, type: string, offer: boolean, furnished: boolean, parking: boolean, sort: string, order: string }
  */
 const getAllListings = async (req, res) => {
+  res.set("Cache-Control", "no-store");
+
   const {
     limit = 10,
     page = 1,
@@ -148,31 +133,133 @@ const getAllListings = async (req, res) => {
 
   const baseQuery = {};
 
-  // filters
+  // BASE FILTERS
   if (type && type !== "all") baseQuery.type = type;
   if (offer !== undefined) baseQuery.offer = offer === "true";
   if (furnished !== undefined) baseQuery.furnished = furnished === "true";
   if (parking !== undefined) baseQuery.parking = parking === "true";
 
-  // Normal Text keyword search
+  let normalizedSearch = "";
+  let useSearch = false;
+  const extractedFilters = {};
+
   if (search && search.trim() !== "") {
-    baseQuery.search = { $search: search };
+    let raw = search.toLowerCase();
+
+    // NUMBER PARSING
+    const numbers = raw.match(/\d+/g);
+
+    if (numbers) {
+      numbers.forEach((numStr) => {
+        const num = Number(numStr);
+
+        if (/bed/.test(raw)) {
+          extractedFilters.bedrooms = { $gte: num };
+        }
+
+        if (/bath/.test(raw)) {
+          extractedFilters.bathrooms = { $gte: num };
+        }
+
+        if (/k/.test(raw)) {
+          extractedFilters.regularPrice = { $lte: num * 1000 };
+        }
+      });
+    }
+
+    // BOOLEAN
+    if (raw.includes("furnished")) extractedFilters.furnished = true;
+    if (raw.includes("parking")) extractedFilters.parking = true;
+
+    // TYPE
+    if (raw.includes("rent")) extractedFilters.type = "rent";
+    if (raw.includes("sell")) extractedFilters.type = "sell";
+
+    // CLEAN TEXT
+    normalizedSearch = raw
+      .replace(/\b(\d+)\s*bhk?\b/g, "bedroom")
+      .replace(/\b(\d+)\s*bedrooms?\b/g, "bedroom")
+      .replace(/[^\w\s]/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (normalizedSearch.length > 2) {
+      useSearch = true;
+    }
   }
+
+  Object.assign(baseQuery, extractedFilters);
 
   const sortOrder = order === "asc" ? 1 : -1;
 
-  const [properties, total] = await Promise.all([
-    Listing.find(baseQuery)
-      .populate({
-        path: "userRef",
-        select: "username avatar",
-      })
-      .sort(search ? { score: { $meta: "textScore" } } : { [sort]: sortOrder })
-      .limit(parsedLimit)
-      .skip(skip),
+  let properties = [];
+  let total = 0;
 
-    Listing.countDocuments(baseQuery),
-  ]);
+  try {
+    const hasStructuredFilters = Object.keys(extractedFilters).length > 0;
+
+    // ✅ CASE 1: STRUCTURED FILTERS (NO TEXT AT ALL)
+    if (hasStructuredFilters) {
+      [properties, total] = await Promise.all([
+        Listing.find(baseQuery)
+          .populate({
+            path: "userRef",
+            select: "username avatar",
+          })
+          .sort({ [sort]: sortOrder })
+          .limit(parsedLimit)
+          .skip(skip),
+
+        Listing.countDocuments(baseQuery),
+      ]);
+    }
+
+    // ✅ CASE 2: PURE TEXT SEARCH
+    else if (useSearch) {
+      const regex = new RegExp(normalizedSearch, "i");
+
+      const query = {
+        $or: [
+          { name: regex },
+          { description: regex },
+          { address: regex },
+          { searchText: regex },
+        ],
+      };
+
+      [properties, total] = await Promise.all([
+        Listing.find(query)
+          .populate({
+            path: "userRef",
+            select: "username avatar",
+          })
+          .sort({ [sort]: sortOrder })
+          .limit(parsedLimit)
+          .skip(skip),
+
+        Listing.countDocuments(query),
+      ]);
+    }
+
+    // ✅ CASE 3: NO SEARCH
+    else {
+      [properties, total] = await Promise.all([
+        Listing.find(baseQuery)
+          .populate({
+            path: "userRef",
+            select: "username avatar",
+          })
+          .sort({ [sort]: sortOrder })
+          .limit(parsedLimit)
+          .skip(skip),
+
+        Listing.countDocuments(baseQuery),
+      ]);
+    }
+  } catch (err) {
+    console.error("Search Error:", err);
+    throw new ApiError(500, "Search failed");
+  }
 
   const hasMore = skip + properties.length < total;
 
@@ -269,12 +356,10 @@ const updateListing = async (req, res) => {
 
   const property = await Listing.findById(listId);
 
-  // YOU MISSED THIS BEFORE → crash risk
   if (!property) {
     throw new ApiError(404, "Property not found");
   }
 
-  // Ownership check
   if (property.userRef.toString() !== userId.toString()) {
     throw new ApiError(403, "Not authorized");
   }
@@ -329,7 +414,7 @@ const updateListing = async (req, res) => {
   const finalImages = [...keepImages, ...newImages];
 
   /**
-   * HANDLE FIELD UPDATES
+   * FIELD UPDATES
    */
   const allowedFields = [
     "name",
@@ -345,65 +430,30 @@ const updateListing = async (req, res) => {
     "offer",
   ];
 
-  const updates = {};
-
   for (const field of allowedFields) {
     if (req.body[field] !== undefined) {
-      updates[field] = req.body[field];
+      property[field] = req.body[field];
     }
   }
 
   if (
-    updates.discountedPrice &&
-    updates.regularPrice &&
-    updates.discountedPrice >= updates.regularPrice
+    property.discountedPrice &&
+    property.regularPrice &&
+    property.discountedPrice >= property.regularPrice
   ) {
     throw new ApiError(400, "Invalid price logic");
   }
 
-  updates.imageUrls = finalImages;
+  property.imageUrls = finalImages;
 
-  /**
-   * SMART EMBEDDING UPDATE (IMPORTANT)
-   */
-  const searchableFields = [
-    "name",
-    "description",
-    "address",
-    "bedrooms",
-    "bathrooms",
-    "furnished",
-    "parking",
-    "type",
-  ];
-
-  const shouldUpdateEmbedding = searchableFields.some(
-    (field) => updates[field] !== undefined
-  );
-
-  if (shouldUpdateEmbedding) {
-    const mergedData = {
-      ...property.toObject(),
-      ...updates,
-    };
-
-    const searchText = buildSearchText(mergedData);
-
-    updates.searchText = searchText;
-    updates.embedding = await generateEmbedding(searchText);
-  }
-
-  const updatedProperty = await Listing.findByIdAndUpdate(listId, updates, {
-    new: true,
-  });
+  // IMPORTANT: use save() → triggers pre("save") hook
+  await property.save();
 
   await logActivity(req, userId, "PROPERTY_UPDATED");
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, updatedProperty, "Listing updated successfully")
-    );
+    .json(new ApiResponse(200, property, "Listing updated successfully"));
 };
 
 /**

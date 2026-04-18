@@ -98,6 +98,7 @@ listingSchema.index({
   name: "text",
   description: "text",
   address: "text",
+  searchText: "text",
 });
 
 /**

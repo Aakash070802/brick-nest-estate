@@ -44,7 +44,8 @@ export const updateListing = async (id, formData) => {
   }
 };
 
-// Get all listings (NON-BLOCKING → skeleton)
+const inFlightRequests = new Map();
+
 export const getAllListings = async ({
   page = 1,
   limit = 8,
@@ -52,17 +53,9 @@ export const getAllListings = async ({
   filters = {},
 } = {}) => {
   try {
-    /**
-     * STEP 1: Normalize search
-     */
     let normalizedSearch = search?.trim().toLowerCase();
 
-    /**
-     * STEP 2: Basic query shaping (VERY IMPORTANT)
-     * This improves embedding quality without calling AI again
-     */
     if (normalizedSearch) {
-      // simple replacements (expand intent)
       normalizedSearch = normalizedSearch
         .replace(/\b(\d+)\s*bhk\b/g, "$1 bedroom")
         .replace(/\bcheap\b/g, "low price affordable")
@@ -70,16 +63,10 @@ export const getAllListings = async ({
         .replace(/\bflat\b/g, "apartment");
     }
 
-    /**
-     * STEP 3: Prevent useless calls
-     */
     if (normalizedSearch && normalizedSearch.length < 3) {
       normalizedSearch = "";
     }
 
-    /**
-     * STEP 4: Clean filters safely
-     */
     const cleanedFilters = Object.fromEntries(
       Object.entries(filters || {}).filter(
         ([_, value]) =>
@@ -90,9 +77,6 @@ export const getAllListings = async ({
       ),
     );
 
-    /**
-     * STEP 5: Build params
-     */
     const params = {
       page,
       limit,
@@ -100,15 +84,27 @@ export const getAllListings = async ({
       ...cleanedFilters,
     };
 
-    /**
-     * 🚀 API CALL
-     */
-    const { data } = await api.get("/listing/all", {
-      params,
-      _skipLoader: true,
-    });
+    // UNIQUE KEY (important)
+    const requestKey = JSON.stringify(params);
 
-    return data.data;
+    // DEDUPE: if already fetching, return same promise
+    if (inFlightRequests.has(requestKey)) {
+      return inFlightRequests.get(requestKey);
+    }
+
+    const requestPromise = api
+      .get("/listing/all", {
+        params,
+        _skipLoader: true,
+      })
+      .then((res) => res.data.data)
+      .finally(() => {
+        inFlightRequests.delete(requestKey);
+      });
+
+    inFlightRequests.set(requestKey, requestPromise);
+
+    return requestPromise;
   } catch (err) {
     throw new Error(err.response?.data?.message || "Failed to fetch listings");
   }
