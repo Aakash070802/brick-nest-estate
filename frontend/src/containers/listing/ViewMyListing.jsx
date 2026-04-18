@@ -8,6 +8,7 @@ import UpdateListingModal from "../../components/listing/UpdateListingModal";
 import DeleteListingModal from "../../components/listing/DeleteListingModal";
 
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const ViewMyListing = () => {
   const [listings, setListings] = useState([]);
@@ -19,6 +20,7 @@ const ViewMyListing = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [selectedListing, setSelectedListing] = useState(null);
+  const navigate = useNavigate();
 
   const fetchListings = async () => {
     try {
@@ -86,7 +88,7 @@ const ViewMyListing = () => {
         {/* LOADING */}
         {loading && (
           <div className="text-center py-20 text-[var(--color-muted-foreground)]">
-            Loading your listings...
+            Loading your Properties...
           </div>
         )}
 
@@ -120,6 +122,7 @@ const ViewMyListing = () => {
               <ListingCards
                 key={listing._id}
                 listing={listing}
+                onClick={() => navigate(`/listing/${listing._id}`)} // ✅ ADD THIS
                 onEdit={() => {
                   setSelectedListing(listing);
                   setUpdateOpen(true);

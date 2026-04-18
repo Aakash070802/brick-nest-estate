@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FaEllipsisV } from "react-icons/fa";
 
-const ListingCard = ({ listing, onEdit, onDelete }) => {
+const ListingCard = ({ listing, onClick, onEdit, onDelete }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
 
@@ -25,9 +25,10 @@ const ListingCard = ({ listing, onEdit, onDelete }) => {
 
   return (
     <div
+      onClick={onClick}
       className="relative rounded-2xl overflow-hidden 
       bg-[var(--color-card)] border border-[var(--color-border)] 
-      shadow-sm hover:shadow-xl transition duration-300 group"
+      shadow-sm hover:shadow-xl transition duration-300 group cursor-pointer"
     >
       {/* IMAGE */}
       <div className="relative">
