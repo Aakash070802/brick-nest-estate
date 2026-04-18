@@ -249,7 +249,7 @@ const Home = () => {
         {/* END OF LIST */}
         {!hasMore && !initialLoading && listings.length > 0 && (
           <p className="text-center mt-10 text-[var(--color-muted-foreground)]">
-            No more listings
+            No more Properties
           </p>
         )}
       </div>

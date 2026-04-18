@@ -8,6 +8,33 @@ import { toast } from "react-toastify";
 import { useTheme } from "../../hooks/useTheme";
 import { useState, useMemo } from "react";
 
+const getTimeAgo = (date) => {
+  const now = new Date();
+  const created = new Date(date);
+
+  const seconds = Math.floor((now - created) / 1000);
+
+  if (seconds < 60) return "just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months > 1 ? "s" : ""} ago`;
+
+  const years = Math.floor(days / 365);
+  return `${years} year${years > 1 ? "s" : ""} ago`;
+};
+
 const PropertyCard = ({ listing }) => {
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -58,7 +85,6 @@ const PropertyCard = ({ listing }) => {
       bg-[var(--color-card)] border border-[var(--color-border)] 
       ${shadowStyle} transition`}
     >
-      {/* IMAGE */}
       <div className="relative h-48 overflow-hidden">
         <img
           src={listing.imageUrls?.[0]?.url || "/fallback-property.jpg"}
@@ -79,7 +105,6 @@ const PropertyCard = ({ listing }) => {
         {currentUser && (
           <button
             type="button"
-            aria-label="Toggle favorite"
             onClick={handleSave}
             className="absolute top-3 right-3 bg-white/90 backdrop-blur p-2 rounded-full shadow"
           >
@@ -92,7 +117,6 @@ const PropertyCard = ({ listing }) => {
         )}
       </div>
 
-      {/* CONTENT */}
       <div className="p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -115,8 +139,14 @@ const PropertyCard = ({ listing }) => {
             </span>
           </div>
 
-          <span className="text-[10px] text-[var(--color-muted-foreground)]">
-            • just now
+          <span
+            className="text-[10px] px-2 py-[2px] rounded-full 
+            bg-[var(--color-muted)] 
+            text-[var(--color-muted-foreground)] 
+            border border-[var(--color-border)]/30
+            backdrop-blur-sm"
+          >
+            {getTimeAgo(listing.createdAt)}
           </span>
         </div>
 
