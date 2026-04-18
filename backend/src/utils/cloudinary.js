@@ -12,18 +12,36 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
 
+    // Check file exists before upload
+    if (!fs.existsSync(localFilePath)) {
+      throw new Error("File not found for upload");
+    }
+
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
       folder: "brickNest-images",
     });
-    // console.log("File is Uploaded to cloudinary", response.url);
-    fs.unlinkSync(localFilePath);
-    // console.log(localFilePath);
+
+    // Safe delete
+    try {
+      fs.unlinkSync(localFilePath);
+    } catch (err) {
+      console.warn("File delete failed:", err.message);
+    }
+
     return response;
   } catch (error) {
-    console.error("CLOUDINARY UPLOAD ERROR:", error);
-    fs.unlinkSync(localFilePath);
-    // console.log(localFilePath);
+    console.error("CLOUDINARY UPLOAD ERROR:", error.message);
+
+    // Safe delete again
+    try {
+      if (localFilePath && fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+    } catch (err) {
+      console.warn("Cleanup failed:", err.message);
+    }
+
     throw new Error("Cloudinary upload failed");
   }
 };
