@@ -5,16 +5,19 @@ const listingSchema = new Schema(
     name: {
       type: String,
       required: [true, "Name is required"],
+      trim: true,
     },
 
     description: {
       type: String,
       required: [true, "Description is required"],
+      trim: true,
     },
 
     address: {
       type: String,
       required: [true, "Address is required"],
+      trim: true,
     },
 
     regularPrice: {
@@ -71,29 +74,14 @@ const listingSchema = new Schema(
       required: [true, "User reference is required"],
     },
 
-    /**
-     * AI SEARCH FIELDS
-     */
-
-    // Combined searchable text
     searchText: {
       type: String,
-      index: true,
-    },
-
-    // Vector embedding for semantic search
-    embedding: {
-      type: [Number], // Array of floats
-      default: [],
-      index: false, // handled by vector DB or manual similarity
     },
   },
   { timestamps: true }
 );
 
-/**
- * TEXT INDEX (fallback search)
- */
+// TEXT INDEX (ONLY ONE, CLEAN)
 listingSchema.index({
   name: "text",
   description: "text",
@@ -101,10 +89,8 @@ listingSchema.index({
   searchText: "text",
 });
 
-/**
- * AUTO GENERATE searchText BEFORE SAVE
- */
-listingSchema.pre("save", function (next) {
+// AUTO GENERATE searchText
+listingSchema.pre("save", function () {
   this.searchText = `
     ${this.name}
     ${this.description}
@@ -115,8 +101,6 @@ listingSchema.pre("save", function (next) {
     ${this.parking ? "parking available" : ""}
     ${this.type}
   `.toLowerCase();
-
-  next();
 });
 
 export const Listing = model("Listing", listingSchema);

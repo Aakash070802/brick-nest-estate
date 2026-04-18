@@ -64,18 +64,22 @@ const createListing = async (req, res) => {
     });
   }
 
-  const listing = await Listing.create({
+  const parsedData = {
     name,
     description,
     address,
-    regularPrice,
-    discountedPrice,
-    bathrooms,
-    bedrooms,
-    furnished,
-    parking,
+    regularPrice: Number(regularPrice),
+    discountedPrice: discountedPrice ? Number(discountedPrice) : undefined,
+    bathrooms: Number(bathrooms),
+    bedrooms: Number(bedrooms),
+    furnished: furnished === "true",
+    parking: parking === "true",
     type,
-    offer,
+    offer: offer === "true",
+  };
+
+  const listing = await Listing.create({
+    ...parsedData,
     imageUrls: uploadedImages,
     userRef: req.user._id,
   });
