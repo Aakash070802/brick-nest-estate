@@ -4,10 +4,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import { logActivity } from "../utils/logger.js";
-import { generateEmbedding } from "../utils/embeddings.js";
-import { cosineSimilarity } from "../utils/similarity.js";
 
-/**
+/*
  * @Helper Build Search Text
  */
 const buildSearchText = (data) => {
@@ -164,84 +162,33 @@ const getAllListings = async (req, res) => {
   const parsedPage = Math.max(1, Number(page));
   const skip = (parsedPage - 1) * parsedLimit;
 
-  let properties = [];
-  let total = 0;
-
-  /**
-   * 🔥 COMMON FILTERS (used in both flows)
-   */
   const baseQuery = {};
 
+  // filters
   if (type && type !== "all") baseQuery.type = type;
   if (offer !== undefined) baseQuery.offer = offer === "true";
   if (furnished !== undefined) baseQuery.furnished = furnished === "true";
   if (parking !== undefined) baseQuery.parking = parking === "true";
 
-  /**
-   * 🚀 AI SEARCH FLOW
-   */
+  // Normal Text keyword search
   if (search && search.trim() !== "") {
-    // Step 1: Convert query → embedding
-    const queryEmbedding = await generateEmbedding(search);
-
-    // Step 2: Fetch filtered listings
-    const listings = await Listing.find(baseQuery).populate({
-      path: "userRef",
-      select: "username avatar",
-    });
-
-    // ⚠️ Edge case: no data
-    if (!listings.length) {
-      return res.status(200).json(
-        new ApiResponse(200, "No properties found", {
-          properties: [],
-          pagination: {
-            total: 0,
-            page: parsedPage,
-            limit: parsedLimit,
-            hasMore: false,
-          },
-        })
-      );
-    }
-
-    // Step 3: Score using cosine similarity
-    const scoredListings = listings.map((item) => {
-      const score = cosineSimilarity(queryEmbedding, item.embedding || []);
-
-      return { item, score };
-    });
-
-    // Step 4: Sort by similarity (HIGH → LOW)
-    scoredListings.sort((a, b) => b.score - a.score);
-
-    // Step 5: Pagination AFTER ranking
-    total = scoredListings.length;
-
-    const paginatedResults = scoredListings
-      .slice(skip, skip + parsedLimit)
-      .map((entry) => entry.item);
-
-    properties = paginatedResults;
-  } else {
-    /**
-     * 🧠 NORMAL QUERY FLOW (NO SEARCH)
-     */
-    const sortOrder = order === "asc" ? 1 : -1;
-
-    [properties, total] = await Promise.all([
-      Listing.find(baseQuery)
-        .populate({
-          path: "userRef",
-          select: "username avatar",
-        })
-        .sort({ [sort]: sortOrder })
-        .limit(parsedLimit)
-        .skip(skip),
-
-      Listing.countDocuments(baseQuery),
-    ]);
+    baseQuery.search = { $search: search };
   }
+
+  const sortOrder = order === "asc" ? 1 : -1;
+
+  const [properties, total] = await Promise.all([
+    Listing.find(baseQuery)
+      .populate({
+        path: "userRef",
+        select: "username avatar",
+      })
+      .sort(search ? { score: { $meta: "textScore" } } : { [sort]: sortOrder })
+      .limit(parsedLimit)
+      .skip(skip),
+
+    Listing.countDocuments(baseQuery),
+  ]);
 
   const hasMore = skip + properties.length < total;
 

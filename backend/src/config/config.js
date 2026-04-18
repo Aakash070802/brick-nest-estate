@@ -40,10 +40,6 @@ if (!process.env.GOOGLE_USER_PASSWORD) {
   throw new Error("GOOGLE_USER_PASSWORD is not defined at ENV file.");
 }
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY is not defined at ENV file.");
-}
-
 const config = {
   PORT: process.env.PORT || 3000,
   MONGO: process.env.MONGO_URI,
@@ -55,7 +51,6 @@ const config = {
   NODE_ENV: process.env.NODE_ENV,
   GOOGLE_USER: process.env.GOOGLE_USER,
   GOOGLE_PASS: process.env.GOOGLE_USER_PASSWORD,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 };
 
 export { config };
