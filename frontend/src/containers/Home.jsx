@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import PropertyCard from "../components/home/PropertyCard";
 import PropertyCardSkeleton from "../components/home/PropertyCardSkeleton";
@@ -36,11 +36,24 @@ const Home = () => {
 
   const observerRef = useRef();
   const fetchIdRef = useRef(0);
-  const isFirstLoad = useRef(true);
 
-  /**
-   * 🚀 FETCH LISTINGS
-   */
+  // PROPER DEBOUNCE
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = search.trim();
+
+      if (trimmed.length === 0) {
+        setDebouncedSearch("");
+      } else if (trimmed.length >= 3) {
+        setDebouncedSearch(trimmed);
+      }
+    }, 1000); // slightly increased
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  //  SINGLE SOURCE FETCH
+
   const fetchListings = async (pageNum = 1, reset = false) => {
     try {
       setLoading(true);
@@ -66,9 +79,11 @@ const Home = () => {
 
       setListings((prev) => {
         if (reset) return safeListings;
+
         const newItems = safeListings.filter(
           (item) => !prev.some((p) => p._id === item._id),
         );
+
         return [...prev, ...newItems];
       });
 
@@ -81,58 +96,40 @@ const Home = () => {
     }
   };
 
-  /**
-   * 🔄 TRIGGER FETCH ON FILTER / SEARCH
-   */
+  //  RESET + FIRST FETCH
+
   useEffect(() => {
-    if (isFirstLoad.current) {
-      isFirstLoad.current = false;
-      fetchListings(1, true);
-      return;
-    }
+    setListings([]);
     setPage(1);
-    fetchListings(1, true);
-  }, [filters, debouncedSearch]);
+    setHasMore(true);
 
-  /**
-   * 🔥 IMPROVED DEBOUNCE
-   */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const trimmed = search.trim();
-      if (trimmed.length === 0) {
-        setDebouncedSearch("");
-      } else if (trimmed.length >= 3) {
-        setDebouncedSearch(trimmed);
-      }
-    }, 400);
+    fetchListings(1, true); //  direct call (no chaining)
+  }, [debouncedSearch, filters]);
 
-    return () => clearTimeout(timer);
-  }, [search]);
+  //  PAGINATION ONLY
 
-  /**
-   * 📄 PAGINATION
-   */
   useEffect(() => {
     if (page === 1) return;
     fetchListings(page);
   }, [page]);
 
-  /**
-   * 👀 INFINITE SCROLL
-   */
-  const lastElementRef = (node) => {
-    if (loading || !hasMore) return;
-    if (observerRef.current) observerRef.current.disconnect();
+  // INFINITE SCROLL
+  const lastElementRef = useCallback(
+    (node) => {
+      if (loading || !hasMore) return;
 
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setPage((prev) => prev + 1);
-      }
-    });
+      if (observerRef.current) observerRef.current.disconnect();
 
-    if (node) observerRef.current.observe(node);
-  };
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prev) => prev + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, hasMore],
+  );
 
   useEffect(() => {
     return () => observerRef.current?.disconnect();
@@ -141,7 +138,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* 🔥 FIXED STICKY HEADER */}
+        {/*  FIXED STICKY HEADER */}
         <div className="sticky top-14 z-50 -mx-4 px-4 py-4 bg-[var(--color-background)]/95 backdrop-blur-lg border-b border-[var(--color-border)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             {/* Title */}
