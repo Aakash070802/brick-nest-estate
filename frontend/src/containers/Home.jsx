@@ -198,7 +198,7 @@ const Home = () => {
 
         {/* INITIAL LOADING */}
         {initialLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
@@ -219,7 +219,7 @@ const Home = () => {
             initial="hidden"
             animate="visible"
             layout
-            className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6"
+            className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-6"
           >
             {listings.map((item, index) => {
               const isLast = index === listings.length - 1;
@@ -239,7 +239,7 @@ const Home = () => {
 
         {/* LOADING MORE */}
         {loading && !initialLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <PropertyCardSkeleton key={i} />
             ))}
