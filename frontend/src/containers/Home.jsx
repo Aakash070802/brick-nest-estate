@@ -139,7 +139,7 @@ const Home = () => {
     <div className="min-h-screen bg-[var(--color-background)]">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/*  FIXED STICKY HEADER */}
-        <div className="sticky top-14 z-50 -mx-4 px-4 py-4 bg-[var(--color-background)]/95 backdrop-blur-lg border-b border-[var(--color-border)]">
+        <div className="sticky top-14 z-40 -mx-4 px-4 py-4 bg-[var(--color-background)]/95 backdrop-blur-lg border-b border-[var(--color-border)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             {/* Title */}
             <motion.h1

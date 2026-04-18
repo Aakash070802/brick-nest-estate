@@ -94,13 +94,13 @@ const ViewMyListing = () => {
         {!loading && listings.length === 0 && (
           <div className="text-center py-24 space-y-3">
             <p className="text-lg text-[var(--color-muted-foreground)]">
-              You haven't created any listings yet.
+              You haven't created any Properties yet.
             </p>
             <button
               onClick={() => setCreateOpen(true)}
               className="px-5 py-2 rounded-xl bg-[var(--color-primary)] text-white"
             >
-              Create your first listing
+              Create your first Property
             </button>
           </div>
         )}
