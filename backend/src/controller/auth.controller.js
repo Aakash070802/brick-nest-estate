@@ -151,8 +151,8 @@ const loginController = async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: true,
+    sameSite: "none",
   };
 
   const loggedInUser = sanitizeUser(user);
@@ -188,8 +188,8 @@ const googleController = async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: true,
+    sameSite: "none",
   };
 
   if (user) {
@@ -391,8 +391,8 @@ const refreshTokenController = async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: config.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
     };
 
     await logActivity(req, user._id, "TOKEN_REFRESH");
@@ -555,8 +555,8 @@ const verifyRestoreUser = async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: true,
+    sameSite: "none",
   };
 
   await logActivity(req, user._id, "RESTORE_LOGIN_SUCCESS");
