@@ -49,7 +49,7 @@ api.interceptors.request.use(
   (config) => {
     if (!config._skipLoader) {
       startLoading();
-      config._loaderEnabled = true; // 🔥 track it
+      config._loaderEnabled = true; // track it
     }
     return config;
   },
