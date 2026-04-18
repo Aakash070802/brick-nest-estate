@@ -474,7 +474,12 @@ const requestRestoreAccount = async (req, res) => {
     isValid: true,
   });
 
-  await sendEmail(email, "OTP verification", `Your OTP code is: ${otp}`, html);
+  await sendEmail({
+    to: email,
+    subject: "OTP verification",
+    text: `Your OTP code is: ${otp}`,
+    html,
+  });
 
   return res.json(new ApiResponse(200, "OTP sent"));
 };
@@ -625,7 +630,12 @@ const forgotPasswordController = async (req, res) => {
     isValid: true,
   });
 
-  await sendEmail(email, "Reset Password OTP", `OTP: ${otp}`, html);
+  await sendEmail({
+    to: email,
+    subject: "Reset Password OTP",
+    text: `OTP: ${otp}`,
+    html,
+  });
 
   return res.json(new ApiResponse(200, "OTP sent"));
 };
