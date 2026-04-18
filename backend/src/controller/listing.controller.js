@@ -5,22 +5,6 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import { logActivity } from "../utils/logger.js";
 
-/*
- * @Helper Build Search Text
- */
-const buildSearchText = (data) => {
-  return `
-    ${data.name}
-    ${data.description}
-    ${data.address}
-    ${data.bedrooms} bedroom
-    ${data.bathrooms} bathroom
-    ${data.furnished ? "furnished" : "unfurnished"}
-    ${data.parking ? "parking available" : ""}
-    ${data.type}
-  `.toLowerCase();
-};
-
 /**
  * @private createListing
  * @description Creates a new listing
