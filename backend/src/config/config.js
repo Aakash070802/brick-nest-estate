@@ -9,6 +9,10 @@ if (!process.env.MONGO_URI) {
   throw new Error("MONGO_URI is not defined at ENV file.");
 }
 
+if (!process.env.FRONTEND_URL) {
+  throw new Error("FRONTEND_URL is not defined at ENV file.");
+}
+
 if (!process.env.ACCESS_TOKEN_SECRET) {
   throw new Error("ACCESS_TOKEN_SECRET is not defined at ENV file.");
 }
@@ -43,6 +47,7 @@ if (!process.env.GOOGLE_USER_PASSWORD) {
 const config = {
   PORT: process.env.PORT || 3000,
   MONGO: process.env.MONGO_URI,
+  FRONTEND_URL: process.env.FRONTEND_URL,
   ACCESS_TOKEN_KEY: process.env.ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_KEY: process.env.REFRESH_TOKEN_SECRET,
   CLOUD_SECRET: process.env.CLOUDINARY_API_SECRET,

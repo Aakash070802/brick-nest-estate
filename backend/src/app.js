@@ -1,3 +1,4 @@
+import { config } from "./config/config.js";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,7 +15,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: config.FRONTEND_URL,
     credentials: true,
   })
 );
