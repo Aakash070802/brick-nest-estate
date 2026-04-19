@@ -18,7 +18,7 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.user);
+  const { authLoading, error } = useSelector((state) => state.user);
 
   const handleChange = (e) => {
     if (e.target.id === "avatar") {
@@ -59,7 +59,7 @@ const Register = () => {
       navigate("/login");
     } catch (err) {
       toast.error(err.message);
-      dispatch(loginFailure(null));
+      dispatch(loginFailure(err.message));
     }
   };
 
@@ -75,7 +75,7 @@ const Register = () => {
           formData={formData}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
-          loading={loading}
+          loading={authLoading}
           error={error}
         />
 

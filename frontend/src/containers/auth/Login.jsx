@@ -67,8 +67,7 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.user);
-
+  const { authLoading, error } = useSelector((state) => state.user);
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -96,7 +95,7 @@ const Login = () => {
       } else {
         toast.error(err.message);
       }
-      dispatch(loginFailure(null));
+      dispatch(loginFailure(err.message));
     }
   };
 
@@ -269,7 +268,7 @@ const Login = () => {
             handleChange={handleChange}
             handleSubmit={handleSubmit}
             handleGoogleLogin={handleGoogleLogin}
-            loading={loading}
+            loading={authLoading}
             googleLoading={googleLoading}
             error={error}
             onForgotPassword={() => setShowForgotModal(true)}
