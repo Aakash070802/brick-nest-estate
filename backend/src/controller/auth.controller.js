@@ -152,7 +152,7 @@ const loginController = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
   };
 
   const loggedInUser = sanitizeUser(user);
@@ -189,7 +189,7 @@ const googleController = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
   };
 
   if (user) {
@@ -392,7 +392,7 @@ const refreshTokenController = async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: "lax",
     };
 
     await logActivity(req, user._id, "TOKEN_REFRESH");
@@ -556,7 +556,7 @@ const verifyRestoreUser = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
   };
 
   await logActivity(req, user._id, "RESTORE_LOGIN_SUCCESS");

@@ -13,7 +13,7 @@ const handleError = (error) => {
 export const loginUser = async (formData) => {
   try {
     const res = await api.post("/auth/login", formData, {
-      _skipLoader: true, // 🔥 IMPORTANT
+      _skipLoader: true, // IMPORTANT
     });
     return res.data;
   } catch (error) {
