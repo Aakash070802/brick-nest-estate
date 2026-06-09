@@ -97,13 +97,14 @@ export const getAllListings = async ({
         params,
         _skipLoader: true,
       })
-      .then((res) => res.data.data)
+      .then((res) => {
+        return res.data?.data;
+      })
       .finally(() => {
         inFlightRequests.delete(requestKey);
       });
 
     inFlightRequests.set(requestKey, requestPromise);
-
     return requestPromise;
   } catch (err) {
     throw new Error(err.response?.data?.message || "Failed to fetch listings");

@@ -33,12 +33,12 @@ const processQueue = (error) => {
 };
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
 const refreshApi = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
@@ -75,7 +75,7 @@ api.interceptors.response.use(
       stopLoading();
     }
 
-    // 🔥 HANDLE 401 WITH LOCK
+    // HANDLE 401 WITH LOCK
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
