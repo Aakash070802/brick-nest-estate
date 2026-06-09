@@ -12,6 +12,10 @@ import { sendEmail } from "../services/email.service.js";
 import bcrypt from "bcryptjs";
 import { createSession } from "../utils/session.js";
 import { logActivity } from "../utils/logger.js";
+import {
+  accessTokenOptions,
+  refreshTokenOptions,
+} from "../config/optionsConfig.js";
 
 /**
  * @function generateAccessTokenAndRefreshToken
@@ -149,19 +153,13 @@ const loginController = async (req, res) => {
 
   await createSession(user, req, refreshToken);
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-  };
-
   const loggedInUser = sanitizeUser(user);
   await logActivity(req, user._id, "LOGIN_SUCCESS");
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(200, "User logged In successfully", loggedInUser));
 };
 
@@ -186,12 +184,6 @@ const googleController = async (req, res) => {
     throw new ApiError(403, "ACCOUNT_DEACTIVATED");
   }
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-  };
-
   if (user) {
     const { accessToken, refreshToken } =
       await generateAccessTokenAndRefreshToken(user._id);
@@ -203,8 +195,8 @@ const googleController = async (req, res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, accessTokenOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenOptions)
       .json(new ApiResponse(200, "Login success", safeUser));
   }
 
@@ -229,8 +221,8 @@ const googleController = async (req, res) => {
 
   return res
     .status(201)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(201, "Google signup success", safeNewUser));
 };
 
@@ -283,8 +275,8 @@ const logoutController = async (req, res) => {
 
     return res
       .status(200)
-      .clearCookie("accessToken")
-      .clearCookie("refreshToken")
+      .clearCookie("accessToken", accessTokenOptions)
+      .clearCookie("refreshToken", refreshTokenOptions)
       .json(new ApiResponse(200, "User Logged out successfully"));
   } catch (error) {
     throw new ApiError(401, "Invalid Token");
@@ -320,8 +312,8 @@ const logoutAllController = async (req, res) => {
 
     return res
       .status(200)
-      .clearCookie("accessToken")
-      .clearCookie("refreshToken")
+      .clearCookie("accessToken", accessTokenOptions)
+      .clearCookie("refreshToken", refreshTokenOptions)
       .json(new ApiResponse(200, "Logged Out from All Devices."));
   } catch (error) {
     throw new ApiError(401, "Invalid token");
@@ -389,18 +381,12 @@ const refreshTokenController = async (req, res) => {
 
     await createSession(user, req, refreshToken);
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-    };
-
     await logActivity(req, user._id, "TOKEN_REFRESH");
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, accessTokenOptions)
+      .cookie("refreshToken", refreshToken, refreshTokenOptions)
       .json(
         new ApiResponse(
           200,
@@ -553,17 +539,11 @@ const verifyRestoreUser = async (req, res) => {
 
   await createSession(user, req, refreshToken);
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-  };
-
   await logActivity(req, user._id, "RESTORE_LOGIN_SUCCESS");
 
   return res
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, accessTokenOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(
       new ApiResponse(200, "Account restored successfully", sanitizeUser(user))
     );
