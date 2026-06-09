@@ -465,55 +465,110 @@ const updateListing = async (req, res) => {
  * @description Seeds the database with sample listings for testing and development purposes. This function creates multiple listings with randomized data, including images uploaded to Cloudinary. It is intended to be run once to populate the database with initial data.
  * @POST /api/listing/seed
  */
-const seedListings = async (req, res) => {
-  const userId = req.user.id;
+// const seedListings = async (req, res) => {
+//   const userId = req.user.id;
 
-  const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+//   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const listings = [];
+//   const cities = ["Raipur", "Bilaspur", "Durg", "Bhilai", "Korba"];
 
-  const cities = ["Raipur", "Bilaspur", "Durg", "Bhilai", "Korba"];
-  const propertyTypes = ["rent", "sell"];
-  const descriptions = [
-    "Spacious and well-ventilated home",
-    "Perfect for families and working professionals",
-    "Prime location with all amenities nearby",
-    "Modern design with great interiors",
-    "Affordable and comfortable living space",
-  ];
+//   const propertyTypes = ["rent", "sell"];
 
-  for (let i = 1; i <= 500; i++) {
-    const regularPrice = Math.floor(Math.random() * 50000) + 5000;
-    const hasOffer = Math.random() > 0.5;
+//   const descriptions = [
+//     "Spacious and well-ventilated home",
+//     "Perfect for families and working professionals",
+//     "Prime location with all amenities nearby",
+//     "Modern design with great interiors",
+//     "Affordable and comfortable living space",
+//     "Luxury property with premium amenities",
+//     "Newly constructed home with parking",
+//     "Family-friendly neighborhood with schools nearby",
+//   ];
 
-    listings.push({
-      name: `Property ${Math.floor(Math.random() * 1000)}`,
-      description: getRandom(descriptions),
-      address: `${getRandom(cities)}, Chhattisgarh`,
-      regularPrice,
-      discountedPrice: hasOffer
-        ? regularPrice - Math.floor(Math.random() * 5000)
-        : undefined,
-      bathrooms: Math.ceil(Math.random() * 4),
-      bedrooms: Math.ceil(Math.random() * 5),
-      furnished: Math.random() > 0.5,
-      parking: Math.random() > 0.5,
-      type: getRandom(propertyTypes),
-      offer: hasOffer,
-      imageUrls: [
-        {
-          url: `https://picsum.photos/400/300?random=${i}`,
-          public_id: `seed_${i}`,
-        },
-      ],
-      userRef: userId,
-    });
-  }
+//   // High quality property images
+//   const propertyImages = [
+//     "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
+//     "https://images.unsplash.com/photo-1570129477492-45c003edd2be",
+//     "https://images.unsplash.com/photo-1600585154526-990dced4db0d",
+//     "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c",
+//     "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde",
+//     "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3",
+//     "https://images.unsplash.com/photo-1605146769289-440113cc3d00",
+//     "https://images.unsplash.com/photo-1600573472550-8090b5e0745e",
+//     "https://images.unsplash.com/photo-1600607687644-c7171b42498f",
+//     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+//     "https://images.unsplash.com/photo-1600047509358-9dc75507daeb",
+//     "https://images.unsplash.com/photo-1600607688969-a5bfcd646154",
+//     "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+//     "https://images.unsplash.com/photo-1600210492493-0946911123ea",
+//     "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6",
+//     "https://images.unsplash.com/photo-1600607687641-2c9f8f60c3cb",
+//     "https://images.unsplash.com/photo-1600047509782-20d39509f26d",
+//     "https://images.unsplash.com/photo-1600566752355-35792bedcfea",
+//     "https://images.unsplash.com/photo-1600607687641-2c9f8f60c3cb",
+//     "https://images.unsplash.com/photo-1600607687644-c7171b42498f",
+//   ];
 
-  await Listing.insertMany(listings);
+//   const listings = [];
 
-  res.json({ message: "Seeded 500 random listings" });
-};
+//   for (let i = 0; i < 500; i++) {
+//     const regularPrice = Math.floor(Math.random() * 50000) + 5000;
+
+//     const hasOffer = Math.random() > 0.5;
+
+//     // 1-5 random images per property
+//     const imageCount = Math.floor(Math.random() * 5) + 1;
+
+//     const selectedImages = [];
+
+//     const shuffled = [...propertyImages].sort(() => 0.5 - Math.random());
+
+//     for (let j = 0; j < imageCount; j++) {
+//       selectedImages.push({
+//         url: shuffled[j],
+//         public_id: `seed_${i}_${j}`,
+//       });
+//     }
+
+//     listings.push({
+//       name: `Property ${i + 1}`,
+
+//       description: getRandom(descriptions),
+
+//       address: `${getRandom(cities)}, Chhattisgarh`,
+
+//       regularPrice,
+
+//       discountedPrice: hasOffer
+//         ? regularPrice - Math.floor(Math.random() * 5000)
+//         : undefined,
+
+//       bathrooms: Math.ceil(Math.random() * 4),
+
+//       bedrooms: Math.ceil(Math.random() * 5),
+
+//       furnished: Math.random() > 0.5,
+
+//       parking: Math.random() > 0.5,
+
+//       type: getRandom(propertyTypes),
+
+//       offer: hasOffer,
+
+//       imageUrls: selectedImages,
+
+//       userRef: userId,
+//     });
+//   }
+
+//   await Listing.insertMany(listings);
+
+//   return res.status(200).json({
+//     success: true,
+//     message: "500 listings seeded successfully",
+//     count: listings.length,
+//   });
+// };
 
 export {
   createListing,
